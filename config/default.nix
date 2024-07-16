@@ -56,7 +56,7 @@ in {
     spell = true;
     spelllang = [
       "en_us"
-      "ru"
+      "ru_ru"
     ];
     number = true; # Show line numbers
     relativenumber = true; # Show relative line numbers
