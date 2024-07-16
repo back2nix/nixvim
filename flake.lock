@@ -272,12 +272,64 @@
         "type": "github"
       }
     },
+    "nvim-spell-en-utf8-dictionary": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-D7PU4+gCrrshtSQTg3WGzk0UaD9mzpb1EdjW5/O13nM=",
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl"
+      },
+      "original": {
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl"
+      }
+    },
+    "nvim-spell-en-utf8-suggestions": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-Qj81zFWCP8nM9kqgYm1B/hhRmk3NxhQoV8xpFbjS6Pc=",
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug"
+      },
+      "original": {
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug"
+      }
+    },
+    "nvim-spell-ru-utf8-dictionary": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-+qR5FsmYK/332YyxfyjqQ6zHaygCoTtM1p2Okza4YLY=",
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.spl"
+      },
+      "original": {
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.spl"
+      }
+    },
+    "nvim-spell-ru-utf8-suggestions": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-yzT/KlhbkxouHfq48JtAMnnB+htAERv8fnGp2PKQFJU=",
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.sug"
+      },
+      "original": {
+        "type": "file",
+        "url": "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.sug"
+      }
+    },
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
         "nixpkgs-master": "nixpkgs-master",
-        "nixvim": "nixvim"
+        "nixvim": "nixvim",
+        "nvim-spell-en-utf8-dictionary": "nvim-spell-en-utf8-dictionary",
+        "nvim-spell-en-utf8-suggestions": "nvim-spell-en-utf8-suggestions",
+        "nvim-spell-ru-utf8-dictionary": "nvim-spell-ru-utf8-dictionary",
+        "nvim-spell-ru-utf8-suggestions": "nvim-spell-ru-utf8-suggestions"
       }
     },
     "systems": {

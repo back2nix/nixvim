@@ -8,7 +8,6 @@
 }: let
 in {
   imports = [
-    ./plugins/spell.nix
     ./plugins/persistent-breakpoints.nvim.nix
     ./plugins/git-blame.nvim.nix
     ./plugins/buffer.nix
