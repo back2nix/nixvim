@@ -18,12 +18,30 @@
     url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug";
     sha256 = "1v1jr4rsjaxaq8bmvi92c93p4b14x2y1z95zl7bjybaqcmhmwvjv";
   };
+
+  # https://github.com/mrcjkb/nvim/blob/f2af9303c4a2a4c9178de955c9389f95e94410a9/nix/neovim-overlay.nix#L52
+  nvimConfig = final.stdenv.mkDerivation {
+    name = "nvim-config";
+    src = ../nvim;
+
+    buildPhase = ''
+      mkdir -p $out/nvim
+      rm init.lua
+    '';
+
+    installPhase = ''
+      cp -r * $out/nvim
+      rm -r $out/nvim/after
+      cp -r after $out/after
+      ln -s ${nvim-spell-ru-utf8-dictionary} $out/nvim/spell/ru.utf-8.spl;
+      ln -s ${nvim-spell-ru-utf8-suggestions} $out/nvim/spell/ru.utf-8.sug;
+      ln -s ${nvim-spell-en-utf8-dictionary} $out/nvim/spell/en.utf-8.spl;
+      ln -s ${nvim-spell-en-utf8-suggestions} $out/nvim/spell/en.utf-8.sug;
+    '';
+  };
 in {
-  # xdg.configFile."nvim/spell/en.utf-8.spl".source = nvim-spell-en-utf8-dictionary;
-
-  xdg.configFile."nvim/spell/ru.utf-8.spl".source = nvim-spell-ru-utf8-dictionary;
-  xdg.configFile."nvim/spell/ru.utf-8.sug".source = nvim-spell-ru-utf8-suggestions;
-
-  xdg.configFile."nvim/spell/en.utf-8.spl".source = nvim-spell-en-utf8-dictionary;
-  xdg.configFile."nvim/spell/en.utf-8.sug".source = nvim-spell-en-utf8-suggestions;
+  extraConfigLua = ''
+    vim.opt.rtp:append('${nvimConfig}/nvim')
+    vim.opt.rtp:append('${nvimConfig}/spell')
+  '';
 }

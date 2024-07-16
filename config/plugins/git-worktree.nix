@@ -1,4 +1,11 @@
-{lib, ...}: let
+{
+  config,
+  lib,
+  ...
+}: let
+  inherit (lib) mkIf;
+
+  cfg = config.plugins.git-worktree;
 in {
   plugins = {
     git-worktree = {
@@ -6,12 +13,12 @@ in {
       enableTelescope = true;
     };
 
-    which-key.registrations."<leader>"."g"."W" = {
+    which-key.registrations."<leader>"."g"."W" = mkIf (cfg.enableTelescope && cfg.enable) {
       name = "󰙅 Worktree";
     };
   };
 
-  keymaps = [
+  keymaps = mkIf cfg.enableTelescope [
     {
       mode = "n";
       key = "<leader>fg";
