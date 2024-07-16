@@ -54,10 +54,10 @@ in {
     background = "";
     updatetime = 100;
     spell = true;
-    spelllang = [
-      "en_us"
-      "ru_ru"
-    ];
+    # spelllang = [
+    #   "en"
+    #   "ru"
+    # ];
     number = true; # Show line numbers
     relativenumber = true; # Show relative line numbers
     incsearch = true;
@@ -877,6 +877,37 @@ in {
   };
 
   extraConfigLua = ''
+    local function check_spell_files()
+      local home = os.getenv("HOME")
+      local spell_dir = home .. "/.config/nvim/spell"
+      local files = {
+        spell_dir .. "/en.utf-8.spl",
+        spell_dir .. "/ru.utf-8.spl",
+        spell_dir .. "/en.utf-8.sug",
+        spell_dir .. "/ru.utf-8.sug"
+      }
+
+      for _, file in ipairs(files) do
+        local f = io.open(file, "r")
+        if f == nil then
+          return false
+        end
+        f:close()
+      end
+
+      return true
+    end
+
+    if check_spell_files() then
+      vim.opt.runtimepath:append(vim.fn.expand('~/.config/nvim'))
+      vim.opt.spelllang = {'en_us', 'ru_ru'}
+      vim.opt.spellfile = vim.fn.expand('~/.config/nvim/spell/en.utf-8.add,~/.config/nvim/spell/ru.utf-8.add')
+      vim.opt.spell = true
+      print("Spell checking enabled for en_us and ru_ru")
+    else
+      print("Some spell files are missing. Spell checking not enabled.")
+    end
+
     vim.api.nvim_create_user_command("Pwd", 'let @+=expand("%:p") | echo expand("%:p")', {})
 
     local function myRepl(t)
