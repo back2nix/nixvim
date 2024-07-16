@@ -10,6 +10,19 @@ cd nixvim
 nix run .
 ```
 
+## Warn
+
+add in your home-manager or configuration.nix
+
+- this file [./config/plugins/spell.nix](./config/plugins/spell.nix)
+
+```
+  imports = [
+    ./spell.nix
+  ];
+
+```
+
 ## Screenshots
 
 ![image](https://github.com/user-attachments/assets/13fce37a-82cf-4495-9d19-1ee0a100dcd2)
