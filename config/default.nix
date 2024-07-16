@@ -904,8 +904,6 @@ in {
       vim.opt.spellfile = vim.fn.expand('~/.config/nvim/spell/en.utf-8.add,~/.config/nvim/spell/ru.utf-8.add')
       vim.opt.spell = true
       print("Spell checking enabled for en_us and ru_ru")
-    else
-      print("Some spell files are missing. Spell checking not enabled.")
     end
 
     vim.api.nvim_create_user_command("Pwd", 'let @+=expand("%:p") | echo expand("%:p")', {})
