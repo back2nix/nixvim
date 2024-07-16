@@ -13,5 +13,7 @@ If you add a new configuration file, remember to add it to the
 To test your configuration simply run the following command
 
 ```
+nix run github:back2nix/nixvim
+#or
 nix run .
 ```
