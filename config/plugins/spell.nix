@@ -1,4 +1,8 @@
-{config, ...}: let
+{
+  config,
+  pkgs,
+  ...
+}: let
   nvim-spell-ru-utf8-dictionary = builtins.fetchurl {
     url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.spl";
     sha256 = "0kf5vbk7lmwap1k4y4c1fm17myzbmjyzwz0arh5v6810ibbknbgb";
@@ -20,19 +24,15 @@
   };
 
   # https://github.com/mrcjkb/nvim/blob/f2af9303c4a2a4c9178de955c9389f95e94410a9/nix/neovim-overlay.nix#L52
-  nvimConfig = final.stdenv.mkDerivation {
+  nvimConfig = pkgs.stdenv.mkDerivation {
     name = "nvim-config";
-    src = ../nvim;
+    src = ./.;
 
     buildPhase = ''
-      mkdir -p $out/nvim
-      rm init.lua
+      mkdir -p $out/nvim/spell
     '';
 
     installPhase = ''
-      cp -r * $out/nvim
-      rm -r $out/nvim/after
-      cp -r after $out/after
       ln -s ${nvim-spell-ru-utf8-dictionary} $out/nvim/spell/ru.utf-8.spl;
       ln -s ${nvim-spell-ru-utf8-suggestions} $out/nvim/spell/ru.utf-8.sug;
       ln -s ${nvim-spell-en-utf8-dictionary} $out/nvim/spell/en.utf-8.spl;
@@ -41,7 +41,6 @@
   };
 in {
   extraConfigLua = ''
-    vim.opt.rtp:append('${nvimConfig}/nvim')
-    vim.opt.rtp:append('${nvimConfig}/spell')
+    vim.opt.rtp:append('${nvimConfig}/nvim/spell')
   '';
 }
