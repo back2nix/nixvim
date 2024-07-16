@@ -1,13 +1,3 @@
-# Nixvim template
-
-This template gives you a good starting point for configuring nixvim standalone.
-
-## Configuring
-
-To start configuring, just add or modify the nix files in `./config`.
-If you add a new configuration file, remember to add it to the
-[`config/default.nix`](./config/default.nix) file
-
 ## Testing your new configuration
 
 To test your configuration simply run the following command
@@ -15,5 +5,17 @@ To test your configuration simply run the following command
 ```
 nix run github:back2nix/nixvim
 #or
+git clone https://github.com/back2nix/nixvim
+cd nixvim
 nix run .
 ```
+
+## Screenshots
+
+![image](https://github.com/user-attachments/assets/13fce37a-82cf-4495-9d19-1ee0a100dcd2)
+![Screenshot from 2024-07-17 00-04-11](https://github.com/user-attachments/assets/6f3ed364-b985-412f-be80-3cb5e4037fed)
+![Screenshot from 2024-07-17 00-04-39](https://github.com/user-attachments/assets/4badc450-900e-4a54-ad7d-d7976349ca01)
+![image](https://github.com/user-attachments/assets/cc065ec0-ce20-4338-a45b-7b0d99ee32dd)
+![image](https://github.com/user-attachments/assets/9d9ed1c2-43f3-46be-94a0-c00b7b7d50dd)
+![image](https://github.com/user-attachments/assets/223b0c0f-3c60-44de-a10b-d5b28abec714)
+![image](https://github.com/user-attachments/assets/b168def4-a0ee-4f99-a34e-501275976d43)
