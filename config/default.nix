@@ -8,9 +8,6 @@
 }: let
 in {
   imports = [
-    # ./highlight.nix
-    # ./plug/colorscheme/biscuit.nix
-    # ./plug/colorscheme/colorscheme.nix
     ./autocommands.nix
     ./plugins/persistent-breakpoints.nvim.nix
     ./plugins/git-blame.nvim.nix
@@ -18,16 +15,9 @@ in {
     ./plugins/oil.nix
     ./plugins/git-worktree.nix
     ./plugins/spell.nix
-    # ./plug/ui/btw.nix
     ./plug/ui/telescope.nix
     ./plug/utils/undotree.nix
     ./plug/ui/nvim-notify.nix
-    # ./theme.nix
-    # inputs.nixvim.homeManagerModules.nixvim
-    # ./plugins/lspsaga.nix
-    # ./plugins/bash
-    # ./plugins/dap.nix
-    # ./plugins/colorscheme.nix
   ];
 
   options = {
@@ -37,13 +27,13 @@ in {
     # colorschemes.dracula.enable = true;
     colorschemes.nightfox.enable = true;
 
-    # clipboard = {
-    #   register = "unnamedplus";
-    #   # TODO: Make conditional if X11/Wayland enabled
-    #   # providers.wl-copy.enable = true;
-    #   providers.xclip.enable = pkgs.stdenv.isLinux;
-    #   providers.xsel.enable = pkgs.stdenv.isDarwin;
-    # };
+    clipboard = {
+      register = "unnamedplus";
+      # TODO: Make conditional if X11/Wayland enabled
+      # providers.wl-copy.enable = true;
+      providers.xclip.enable = pkgs.stdenv.isLinux;
+      providers.xsel.enable = pkgs.stdenv.isDarwin;
+    };
 
     extraConfigLua = ''
       vim.api.nvim_create_user_command("Pwd", 'let @+=expand("%:p") | echo expand("%:p")', {})
