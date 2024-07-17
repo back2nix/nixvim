@@ -13,6 +13,7 @@ in {
     ./plugins/buffer.nix
     ./plugins/oil.nix
     ./plugins/git-worktree.nix
+    ./plugins/spell.nix
     # inputs.nixvim.homeManagerModules.nixvim
     # ./plugins/lspsaga.nix
     # ./plugins/bash
@@ -53,8 +54,9 @@ in {
     timeoutlen = 100;
     background = "";
     updatetime = 100;
-    spell = true;
-    spelllang = ["en" "ru"];
+    # spell = true;
+    # spelllang = [] ++ lib.optional (builtins.pathExists (config.lib.file.mkOutOfStoreSymlink "~/nvim/spell/ru.utf-8.spl")) ["en" "ru"];
+    # spelllang = [] ++ lib.optional (builtins.pathExists "~/nvim/spell/ru.utf-8.spl") ["en" "ru"];
     number = true; # Show line numbers
     relativenumber = true; # Show relative line numbers
     incsearch = true;

@@ -11,17 +11,14 @@
       url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.spl";
       flake = false;
     };
-
     nvim-spell-ru-utf8-suggestions = {
       url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.sug";
       flake = false;
     };
-
     nvim-spell-en-utf8-dictionary = {
       url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl";
       flake = false;
     };
-
     nvim-spell-en-utf8-suggestions = {
       url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug";
       flake = false;
