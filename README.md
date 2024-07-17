@@ -1,3 +1,15 @@
+## If not installed nix
+
+- https://nixos.org/download/#nix-install-linux
+```nix
+sh <(curl -L https://nixos.org/nix/install) --daemon
+```
+
+- https://nixos.org/download/#nix-install-macos
+```
+sh <(curl -L https://nixos.org/nix/install)
+```
+
 ## Testing your new configuration
 
 To test your configuration simply run the following command
