@@ -18,6 +18,8 @@ in {
     ./plug/ui/telescope.nix
     ./plug/utils/undotree.nix
     ./plug/ui/nvim-notify.nix
+    ./plugins/cmp-go-pkgs.nix
+    ./userCommands.nix
   ];
 
   options = {
