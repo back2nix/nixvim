@@ -18,9 +18,9 @@ in {
     ./plugins/cmp-go-pkgs.nix
 
     ./plug/ui/telescope.nix
-    ./plug/ui/indent-blankline.nix
     ./plug/utils/undotree.nix
-    ./plug/ui/nvim-notify.nix
+    ./plug/utils/ufo.nix
+    # ./plug/ui/nvim-notify.nix
     ./plug/git/gitlinker.nix
     ./plug/snippets/luasnip.nix
     # ./plug/treesitter/treesitter.nix
@@ -344,7 +344,7 @@ in {
       };
 
       comment.enable = true;
-      #comment-nvim.enable = true;
+      # comment-nvim.enable = true;
       commentary.enable = true;
       diffview = {
         enable = true;

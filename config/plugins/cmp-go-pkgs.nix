@@ -1,5 +1,4 @@
 {pkgs, ...}: let
-  # https://github.com/kranners/jimbo/blob/bff324d165f4bbcba7d265c00aea4e72c0eec8b7/shared/modules/nixvim/plugins/default.nix#L20
   cmp-go-pkgs = pkgs.vimUtils.buildVimPlugin {
     pname = "cmp-go-pkgs";
     version = "2024-05-04";
@@ -16,18 +15,25 @@ in {
     cmp-go-pkgs
     pkgs.vimPlugins.nvim-cmp
   ];
-
   keymaps = [
   ];
-
   extraConfigLua = ''
     local cmp = require("cmp")
 
+    vim.api.nvim_create_autocmd("FileType", {
+      pattern = "go",
+      callback = function()
+        cmp.setup.buffer({
+          sources = {
+            { name = "go_pkgs" },
+          },
+          matching = { disallow_symbol_nonprefix_matching = false },
+        })
+      end,
+    })
+
     cmp.setup({
-      sources = {
-        { name = "go_pkgs" },
-      },
-      matching = { disallow_symbol_nonprefix_matching = false }, -- to use . and / in urls
+      -- Your global cmp setup (if any) goes here
     })
   '';
 }
