@@ -36,6 +36,58 @@ in {
     };
 
     extraConfigLua = ''
+      vim.api.nvim_create_user_command('ReplaceHeaderSyntax', function()
+        -- Сохраняем текущую позицию курсора
+        local cursor_pos = vim.api.nvim_win_get_cursor(0)
+
+        -- Выполняем замену
+        vim.cmd([[
+        %s/req\.Header\[\(.\{-}\)\] = \[\]string{\(.\{-}\)}/req.Header.Set(\1, \2)/ge
+        ]])
+
+        -- Возвращаем курсор на исходную позицию
+        vim.api.nvim_win_set_cursor(0, cursor_pos)
+
+        print("Замена выполнена")
+      end, {})
+
+      vim.api.nvim_create_user_command('ReplaceHeaderSyntaxCamelCase', function()
+        -- Сохраняем текущую позицию курсора
+        local cursor_pos = vim.api.nvim_win_get_cursor(0)
+
+        -- Функция для преобразования строки в CamelCase
+        local function toCamelCase(str)
+          return str:gsub("(%l)(%w*)", function(a,b)
+            return string.upper(a) .. b
+          end):gsub("%-(%w)", function(a)
+            return "-" .. string.upper(a)
+          end)
+        end
+
+        -- Функция для замены
+        local function replaceHeader(line)
+          return line:gsub('req%.Header%.(%w+)%("([^"]+)",', function(method, header)
+            return string.format('req.Header.%s("%s",', method, toCamelCase(header))
+          end)
+        end
+
+        -- Получаем все строки файла
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+        -- Применяем замену к каждой строке
+        for i, line in ipairs(lines) do
+          lines[i] = replaceHeader(line)
+        end
+
+        -- Записываем измененные строки обратно в буфер
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
+
+        -- Возвращаем курсор на исходную позицию
+        vim.api.nvim_win_set_cursor(0, cursor_pos)
+
+        print("Замена выполнена")
+      end, {})
+
       vim.api.nvim_create_user_command("Pwd", 'let @+=expand("%:p") | echo expand("%:p")', {})
 
       local function myRepl(t)
