@@ -18,8 +18,14 @@ in {
     ./plugins/cmp-go-pkgs.nix
 
     ./plug/ui/telescope.nix
+    ./plug/ui/indent-blankline.nix
     ./plug/utils/undotree.nix
     ./plug/ui/nvim-notify.nix
+    ./plug/git/gitlinker.nix
+    ./plug/snippets/luasnip.nix
+    # ./plug/treesitter/treesitter.nix
+    # ./plug/treesitter/treesitter-context.nix
+    # ./plug/treesitter/treesitter-textobjects.nix
 
     ./userCommands.nix
     ./keys.nix
@@ -724,7 +730,7 @@ in {
         };
       };
 
-      luasnip.enable = true;
+      # luasnip.enable = true;
       cmp = {
         enable = true;
 

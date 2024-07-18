@@ -80,6 +80,51 @@
       desc = "Заменяет двойные кавычки на одинарные";
       range = true;
     };
+
+    CopyModulePath = {
+      command.__raw = ''
+        function()
+          local function find_go_mod()
+            local current_dir = vim.fn.expand('%:p:h')
+            while current_dir ~= '/' do
+              local go_mod = current_dir .. '/go.mod'
+              if vim.fn.filereadable(go_mod) == 1 then
+                return go_mod
+              end
+              current_dir = vim.fn.fnamemodify(current_dir, ':h')
+            end
+            return nil
+          end
+
+          local go_mod = find_go_mod()
+          if not go_mod then
+            print("go.mod не найден")
+            return
+          end
+
+          local module_name = nil
+          for line in io.lines(go_mod) do
+            local match = line:match("^module%s+(.+)$")
+            if match then
+              module_name = match
+              break
+            end
+          end
+
+          if not module_name then
+            print("Имя модуля не найдено в go.mod")
+            return
+          end
+
+          local relative_path = vim.fn.expand('%:h:.')
+          local full_path = module_name .. '/' .. relative_path
+
+          vim.fn.setreg('+', full_path)
+          print("Путь скопирован: " .. full_path)
+        end
+      '';
+      desc = "Копировать путь модуля Go";
+    };
   };
   keymaps = [
     {
@@ -127,7 +172,7 @@
       key = "<leader>mH";
       action = "<cmd>ReplaceHeaderSyntaxCamelCase<cr>";
       options = {
-        desc = "req.Set('user-agent', -> req.Set('User-Agent'";
+        desc = "req.Set('user-agent', -> req.Set('User-agent'";
       };
     }
     {
@@ -152,6 +197,14 @@
       action = "<cmd>MyReplQu<cr>";
       options = {
         desc = "Заменить двойные кавычки на одинарные";
+      };
+    }
+    {
+      mode = "n";
+      key = "<leader>mg";
+      action = "<cmd>CopyModulePath<cr>";
+      options = {
+        desc = "Копировать путь модуля Go";
       };
     }
   ];

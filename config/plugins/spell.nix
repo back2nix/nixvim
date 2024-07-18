@@ -20,12 +20,11 @@
   #   url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug";
   #   sha256 = "1v1jr4rsjaxaq8bmvi92c93p4b14x2y1z95zl7bjybaqcmhmwvjv";
   # };
+  # variant 1
   nvimSpell = pkgs.stdenv.mkDerivation {
     name = "nvim-spell";
     src = ./.;
-
     buildPhase = "mkdir -p $out/spell";
-
     installPhase = ''
       mkdir -p $out/spell
       ln -s ${inputs.nvim-spell-ru-utf8-dictionary} $out/spell/ru.utf-8.spl
@@ -37,11 +36,19 @@
 in {
   extraConfigLua = ''
     vim.opt.runtimepath:append("${nvimSpell}")
-    vim.opt.spelllang = { "en", "ru" }
-    vim.opt.spell = true
-    vim.opt.spellfile = {
-      vim.fn.stdpath("config") .. "/spell/en.utf-8.add",
-      vim.fn.stdpath("config") .. "/spell/ru.utf-8.add"
-    }
+      vim.opt.spelllang = { "en", "ru" }
+      vim.opt.spell = true
+      vim.opt.spellfile = {
+        vim.fn.stdpath("config") .. "/spell/en.utf-8.add",
+        vim.fn.stdpath("config") .. "/spell/ru.utf-8.add"
+      }
   '';
+
+  # not work
+  # extraFiles = {
+  # "/spell/ru.utf-8.spl" = builtins.readFile "${nvimSpell}/spell/ru.utf-8.spl";
+  # "/spell/ru.utf-8.sug" = builtins.readFile "${inputs.nvim-spell-ru-utf8-suggestions}";
+  # "/spell/en.utf-8.spl" = builtins.readFile "${inputs.nvim-spell-en-utf8-dictionary}";
+  # "/spell/en.utf-8.sug" = builtins.readFile "${inputs.nvim-spell-en-utf8-suggestions}";
+  # };
 }
