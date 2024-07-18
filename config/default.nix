@@ -19,7 +19,6 @@ in {
 
     ./plug/ui/telescope.nix
     ./plug/utils/undotree.nix
-    ./plug/utils/ufo.nix
     # ./plug/ui/nvim-notify.nix
     ./plug/git/gitlinker.nix
     ./plug/snippets/luasnip.nix
