@@ -18,10 +18,12 @@ in {
     ./plugins/cmp-go-pkgs.nix
 
     ./plug/ui/telescope.nix
-    ./plug/utils/undotree.nix
     # ./plug/ui/nvim-notify.nix
+    ./plug/utils/undotree.nix
     ./plug/git/gitlinker.nix
     ./plug/snippets/luasnip.nix
+    # ./plug/utils/hardtime.nix
+
     # ./plug/treesitter/treesitter.nix
     # ./plug/treesitter/treesitter-context.nix
     # ./plug/treesitter/treesitter-textobjects.nix
