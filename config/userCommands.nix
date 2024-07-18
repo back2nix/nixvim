@@ -89,14 +89,14 @@
             while current_dir ~= '/' do
               local go_mod = current_dir .. '/go.mod'
               if vim.fn.filereadable(go_mod) == 1 then
-                return go_mod
+                return go_mod, current_dir
               end
               current_dir = vim.fn.fnamemodify(current_dir, ':h')
             end
-            return nil
+            return nil, nil
           end
 
-          local go_mod = find_go_mod()
+          local go_mod, project_root = find_go_mod()
           if not go_mod then
             print("go.mod не найден")
             return
@@ -116,7 +116,8 @@
             return
           end
 
-          local relative_path = vim.fn.expand('%:h:.')
+          local current_file = vim.fn.expand('%:p')
+          local relative_path = vim.fn.fnamemodify(current_file, ':s?' .. project_root .. '/??')
           local full_path = module_name .. '/' .. relative_path
 
           vim.fn.setreg('+', full_path)
