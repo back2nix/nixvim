@@ -1,18 +1,26 @@
-## If not installed nix
+## Если у вас не установлен nix
 
+### Для Linux
 - https://nixos.org/download/#nix-install-linux
 ```nix
 sh <(curl -L https://nixos.org/nix/install) --daemon
 ```
 
+### Для Mac
 - https://nixos.org/download/#nix-install-macos
 ```
 sh <(curl -L https://nixos.org/nix/install)
 ```
 
-## Testing your new configuration
+## Как запускать nvim из этого репо?
 
-To test your configuration simply run the following command
+- если у вас не активирован flake в nix
+
+```
+nix run --extra-experimental-features "nix-command flakes" --extra-experimental-features flakes github:back2nix/nixvim
+```
+
+- или так если flake у вас и так активирован
 
 ```
 nix run github:back2nix/nixvim
