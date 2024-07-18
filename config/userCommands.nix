@@ -123,7 +123,7 @@
           print("Путь скопирован: " .. full_path)
         end
       '';
-      desc = "Копировать путь модуля Go";
+      desc = "Копировать go github.com/*/*..";
     };
   };
   keymaps = [
@@ -140,7 +140,7 @@
       key = "<leader>mc";
       action = "<cmd>CopyRelativePath<cr>";
       options = {
-        desc = "Копировать относительный путь";
+        desc = "copy relative path";
       };
     }
     {
@@ -148,7 +148,7 @@
       key = "<leader>mC";
       action = "<cmd>CopyFullPath<cr>";
       options = {
-        desc = "Копировать полный путь";
+        desc = "copy full path";
       };
     }
     {
@@ -156,7 +156,7 @@
       key = "<leader>mf";
       action = "<cmd>CopyFileName<cr>";
       options = {
-        desc = "Копировать имя файла";
+        desc = "copy file name";
       };
     }
     {
@@ -164,7 +164,7 @@
       key = "<leader>mh";
       action = "<cmd>ReplaceHeaderSyntax<cr>";
       options = {
-        desc = "req.Header[ -> req.Set(";
+        desc = "replace req.Header[ -> req.Set(";
       };
     }
     {
@@ -172,7 +172,7 @@
       key = "<leader>mH";
       action = "<cmd>ReplaceHeaderSyntaxCamelCase<cr>";
       options = {
-        desc = "req.Set('user-agent', -> req.Set('User-agent'";
+        desc = "replace req.Set('user-agent', -> req.Set('User-agent'";
       };
     }
     {
@@ -180,7 +180,7 @@
       key = "<leader>mp";
       action = "<cmd>Pwd<cr>";
       options = {
-        desc = "Показать полный путь файла";
+        desc = "show full path";
       };
     }
     {
@@ -188,7 +188,7 @@
       key = "<leader>mr";
       action = "<cmd>MyRepl<cr>";
       options = {
-        desc = "Заменить null, [, ]";
+        desc = "replace null, [, ]";
       };
     }
     {
@@ -196,7 +196,7 @@
       key = "<leader>mq";
       action = "<cmd>MyReplQu<cr>";
       options = {
-        desc = "Заменить двойные кавычки на одинарные";
+        desc = ''replace " -> ' '';
       };
     }
     {
@@ -204,7 +204,7 @@
       key = "<leader>mg";
       action = "<cmd>CopyModulePath<cr>";
       options = {
-        desc = "Копировать путь модуля Go";
+        desc = "copy go github.com/ex...";
       };
     }
   ];
