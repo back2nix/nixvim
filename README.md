@@ -14,14 +14,6 @@ sh <(curl -L https://nixos.org/nix/install)
 
 ## Как запускать nvim из этого репо?
 
-- если у вас не активирован flake в nix
-
-```
-nix run --extra-experimental-features "nix-command flakes" --extra-experimental-features flakes github:back2nix/nixvim
-```
-
-- или так если flake у вас и так активирован
-
 ```
 nix run github:back2nix/nixvim
 #or
