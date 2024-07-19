@@ -25,6 +25,9 @@ cd nixvim
 nix run .
 # или с параметрами
 nix run . -- cmd/any/file.go
+# или просто сбилдить
+nix build
+./result/bin/nvim
 ```
 
 ## Screenshots
