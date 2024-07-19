@@ -29,6 +29,9 @@ nix run . -- cmd/any/file.go
 nix build
 ./result/bin/nvim
 ```
+## asciinema video
+
+[![asciicast](https://asciinema.org/a/Dg6RxATpQgSRQvQtyWgG1uB0d.svg)](https://asciinema.org/a/Dg6RxATpQgSRQvQtyWgG1uB0d)
 
 ## Screenshots
 
