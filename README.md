@@ -16,10 +16,15 @@ sh <(curl -L https://nixos.org/nix/install)
 
 ```
 nix run github:back2nix/nixvim
-#or
+```
+- или
+
+```
 git clone https://github.com/back2nix/nixvim
 cd nixvim
 nix run .
+# или с параметрами
+nix run . -- cmd/any/file.go
 ```
 
 ## Screenshots
