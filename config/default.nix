@@ -9,7 +9,7 @@
 in {
   imports = [
     ./autocommands.nix
-    ./userCommands.nix
+    ./user-commands.nix
     ./keys.nix
 
     ./plugins-more.nix
@@ -22,16 +22,16 @@ in {
     ./plugins/spell.nix
     ./plugins/cmp-go-pkgs.nix
 
-    ./plug/ui/telescope.nix
-    # ./plug/ui/nvim-notify.nix
-    ./plug/utils/undotree.nix
-    ./plug/snippets/luasnip.nix
-    # ./plug/utils/hardtime.nix
-    ./plug/utils/gitlinker.nix
+    ./plugins/ui/telescope.nix
+    # ./plugins/ui/nvim-notify.nix
+    ./plugins/utils/undotree.nix
+    ./plugins/snippets/luasnip.nix
+    # ./plugins/utils/hardtime.nix
+    ./plugins/utils/gitlinker.nix
 
-    # ./plug/treesitter/treesitter.nix
-    # ./plug/treesitter/treesitter-context.nix
-    # ./plug/treesitter/treesitter-textobjects.nix
+    # ./plugins/treesitter/treesitter.nix
+    # ./plugins/treesitter/treesitter-context.nix
+    # ./plugins/treesitter/treesitter-textobjects.nix
   ];
 
   options = {
