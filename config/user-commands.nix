@@ -118,8 +118,11 @@
 
           local current_file = vim.fn.expand('%:p')
           local relative_path = vim.fn.fnamemodify(current_file, ':s?' .. project_root .. '/??')
-          local full_path = module_name .. '/' .. relative_path
 
+          -- Удаляем имя файла из относительного пути
+          relative_path = vim.fn.fnamemodify(relative_path, ':h')
+
+          local full_path = module_name .. '/' .. relative_path
           vim.fn.setreg('+', full_path)
           print("Путь скопирован: " .. full_path)
         end
