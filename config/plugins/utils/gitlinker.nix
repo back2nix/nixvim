@@ -23,6 +23,7 @@
       callbacks = {
         ["github.com"] = require("gitlinker.hosts").get_github_type_url,
         ["gitlab.com"] = require("gitlinker.hosts").get_gitlab_type_url,
+        ["gitlab.ozon.ru"] = require("gitlinker.hosts").get_gitlab_type_url,
         ["try.gitea.io"] = require("gitlinker.hosts").get_gitea_type_url,
         ["codeberg.org"] = require("gitlinker.hosts").get_gitea_type_url,
         ["bitbucket.org"] = require("gitlinker.hosts").get_bitbucket_type_url,
