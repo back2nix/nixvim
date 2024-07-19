@@ -31,7 +31,7 @@ nix build
 ```
 ## asciinema video
 
-[![asciicast](https://asciinema.org/a/Dg6RxATpQgSRQvQtyWgG1uB0d.svg)](https://asciinema.org/a/Dg6RxATpQgSRQvQtyWgG1uB0d)
+[![asciicast](https://asciinema.org/a/Dg6RxATpQgSRQvQtyWgG1uB0d.svg)](https://asciinema.org/a/Dg6RxATpQgSRQvQtyWgG1uB0d?autoplay=1)
 
 ## Screenshots
 
