@@ -23,6 +23,8 @@
   config = let
     helpers = inputs.nixvim.lib.${pkgs.system}.helpers;
 
+    # not working
+    # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
     sh-config = lib.mkIf pkgs.stdenv.isLinux {
       type = "bashdb";
       request = "launch";
@@ -141,11 +143,15 @@
       };
 
       configurations = {
+        # not working
+        # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
         sh = lib.optionals pkgs.stdenv.isLinux [sh-config];
       };
 
       adapters = {
         executables = {
+          # not working
+          # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
           bashdb = lib.mkIf pkgs.stdenv.isLinux {command = "${lib.getExe pkgs.bashdb}";};
         };
       };
