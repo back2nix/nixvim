@@ -28,6 +28,7 @@ in {
     ./plugins/snippets/luasnip.nix
     # ./plugins/utils/hardtime.nix
     ./plugins/utils/gitlinker.nix
+    ./plugins/dap.nix
 
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix
@@ -51,23 +52,6 @@ in {
 
     extraConfigLua = ''
       vim.api.nvim_set_keymap("x", "<C-t>", ":po<CR>", { noremap = true })
-
-      local dap, dapui = require("dap"), require("dapui")
-      require('dap.ext.vscode').load_launchjs()
-      dap.listeners.before.attach.dapui_config = function()
-      dapui.open()
-      end
-      dap.listeners.before.launch.dapui_config = function()
-      dapui.open()
-      end
-      dap.listeners.before.event_terminated.dapui_config = function()
-      dapui.close()
-      end
-      dap.listeners.before.event_exited.dapui_config = function()
-      dapui.close()
-      end
-
-      require('dap-python').test_runner = "pytest"
     '';
 
     extraPlugins = with pkgs-master.vimPlugins; [

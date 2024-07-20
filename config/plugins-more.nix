@@ -5,7 +5,8 @@
   pkgs-master,
   lib,
   ...
-}: {
+}: let
+in {
   config = {
     plugins = {
       # nvim-ufo = {
@@ -126,81 +127,6 @@
             };
             enabled = true;
           };
-        };
-      };
-
-      dap = {
-        enable = true;
-
-        signs = {
-          dapBreakpoint = {
-            text = "🟢"; # ● 🟩
-            texthl = "DapBreakpoint";
-          };
-          dapBreakpointCondition = {
-            text = "⚡"; # 🟦
-            texthl = "DapBreakpointCondition";
-          };
-          dapLogPoint = {
-            text = "📝"; # 🖊️ ◆ 🔵 🔴 🟣 🟡
-            texthl = "DapLogPoint";
-          };
-          dapBreakpointRejected = {
-            text = "❌"; # 🟥
-            texthl = "DiagnosticError";
-          };
-          #               
-          dapStopped = {
-            text = "→"; # ▶️ ⏸️ ⏹️ ⏺️ ⏬🔽🎦📎🔗📌
-            texthl = "DapStopped"; # ▶️ ⏸️ ⏯️ ⏹️ ⏺️ ⏭️ ⏮️
-          };
-        };
-        extensions = {
-          dap-go = {
-            enable = true;
-            dapConfigurations = [
-              {
-                type = "go";
-                name = "Attach remote";
-                mode = "remote";
-                request = "attach";
-              }
-              # {
-              #   type = "go";
-              #   name = "Launch Prog";
-              #   request = "launch";
-              #   program = "\${workspaceFolder}/cmd/prog";
-              #   # env = {
-              #   #   CGO_ENABLED = 0;
-              #   # };
-              #   args = [
-              #     "--arg0"
-              #     "--arg1"
-              #     "7080"
-              #   ];
-              #   envFile = "\${workspaceFolder}/.env";
-              #   preLaunchTask = "Build prog";
-              #   postDebugTask = "Stop prog";
-              # }
-            ];
-            delve = {
-              path = "dlv";
-              initializeTimeoutSec = 20;
-              port = "38697";
-              # args = [];
-              buildFlags = "";
-              # buildFlags = ''-ldflags "-X 'gitthub.ru/back2nix/placebo/internal/app.Name=myapp' -tags=debug'';
-            };
-          };
-          dap-python.enable = true;
-          dap-ui = {
-            enable = true;
-            controls.enabled = true;
-          };
-          dap-virtual-text.enable = true;
-        };
-
-        adapters = {
         };
       };
 

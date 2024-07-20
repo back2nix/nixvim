@@ -22,190 +22,370 @@
 
   config = let
     helpers = inputs.nixvim.lib.${pkgs.system}.helpers;
+
+    sh-config = lib.mkIf pkgs.stdenv.isLinux {
+      type = "bashdb";
+      request = "launch";
+      name = "Launch (BashDB)";
+      showDebugOutput = true;
+      pathBashdb = "${lib.getExe pkgs.bashdb}";
+      pathBashdbLib = "${pkgs.bashdb}/share/basdhb/lib/";
+      trace = true;
+      file = ''''${file}'';
+      program = ''''${file}'';
+      cwd = ''''${workspaceFolder}'';
+      pathCat = "cat";
+      pathBash = "${lib.getExe pkgs.bash}";
+      pathMkfifo = "mkfifo";
+      pathPkill = "pkill";
+      args = {};
+      env = {};
+      terminalKind = "integrated";
+    };
   in {
-    programs.nixvim = {
-      plugins.dap = {
-        enable = true;
-        signs = {
-          dapBreakpoint = {
-            text = " ";
-            texthl = "DapBreakpoint";
-          };
-          dapBreakpointCondition = {
-            text = " ";
-            texthl = "DapBreakpointCondition";
-          };
-          dapBreakpointRejected = {
-            text = " ";
-            texthl = "DapBreakpointRejected";
-          };
-          dapLogPoint = {
-            text = "◆";
-            texthl = "DapLogPoint";
-          };
-          dapStopped = {
-            text = "󰁕";
-            texthl = "DapStopped";
-          };
+    plugins.dap = {
+      enable = true;
+      # signs = {
+      #   dapBreakpoint = {
+      #     text = "🟢"; # ● 🟩
+      #     texthl = "DapBreakpoint";
+      #   };
+      #   dapBreakpointCondition = {
+      #     text = "⚡"; # 🟦
+      #     texthl = "DapBreakpointCondition";
+      #   };
+      #   dapLogPoint = {
+      #     text = "📝"; # 🖊️ ◆ 🔵 🔴 🟣 🟡
+      #     texthl = "DapLogPoint";
+      #   };
+      #   dapBreakpointRejected = {
+      #     text = "❌"; # 🟥
+      #     texthl = "DiagnosticError";
+      #   };
+      #   #               
+      #   dapStopped = {
+      #     text = "→"; # ▶️ ⏸️ ⏹️ ⏺️ ⏬🔽🎦📎🔗📌
+      #     texthl = "DapStopped"; # ▶️ ⏸️ ⏯️ ⏹️ ⏺️ ⏭️ ⏮️
+      #   };
+      # };
+      signs = {
+        dapBreakpoint = {
+          text = " ";
+          texthl = "DapBreakpoint";
         };
-        extensions = {
-          dap-ui = {
-            enable = true;
-            floating.mappings = {
-              close = ["<ESC>" "q"];
-            };
-          };
-          dap-virtual-text = {
-            enable = true;
-          };
+        dapBreakpointCondition = {
+          text = " ";
+          texthl = "DapBreakpointCondition";
+        };
+        dapBreakpointRejected = {
+          text = " ";
+          texthl = "DapBreakpointRejected";
+        };
+        dapLogPoint = {
+          text = "◆";
+          texthl = "DapLogPoint";
+        };
+        dapStopped = {
+          text = "󰁕";
+          texthl = "DapStopped";
         };
       };
-      plugins.lualine.sections.lualine_x = lib.mkOrder 900 [
-        {
-          extraConfig.__raw = ''
+      extensions = {
+        dap-ui = {
+          enable = true;
+          controls.enabled = true;
+          floating.mappings = {
+            close = ["<ESC>" "q"];
+          };
+        };
+        dap-virtual-text = {
+          enable = true;
+        };
+        dap-go = {
+          enable = true;
+          dapConfigurations = [
             {
-              function() return " " .. require("dap").status() end,
-              cond = function() return require("dap").status() ~= "" end,
+              type = "go";
+              name = "Attach remote";
+              mode = "remote";
+              request = "attach";
             }
-          '';
-        }
-      ];
-      extraConfigLua = ''
-        -- Automatically open/close dap-ui
-        local dap, dapui = require("dap"), require("dapui")
-        dap.listeners.before.attach.dapui_config = function()
-          dapui.open()
-        end
-        dap.listeners.before.launch.dapui_config = function()
-          dapui.open()
-        end
-        dap.listeners.before.event_terminated.dapui_config = function()
-          dapui.close()
-        end
-        dap.listeners.before.event_exited.dapui_config = function()
-          dapui.close()
-        end
+            # {
+            #   type = "go";
+            #   name = "Launch Prog";
+            #   request = "launch";
+            #   program = "\${workspaceFolder}/cmd/prog";
+            #   # env = {
+            #   #   CGO_ENABLED = 0;
+            #   # };
+            #   args = [
+            #     "--arg0"
+            #     "--arg1"
+            #     "7080"
+            #   ];
+            #   envFile = "\${workspaceFolder}/.env";
+            #   preLaunchTask = "Build prog";
+            #   postDebugTask = "Stop prog";
+            # }
+          ];
+          delve = {
+            path = "dlv";
+            initializeTimeoutSec = 20;
+            port = "38697";
+            # args = [];
+            buildFlags = "";
+            # buildFlags = ''-ldflags "-X 'gitthub.ru/back2nix/placebo/internal/app.Name=myapp' -tags=debug'';
+          };
+        };
+        dap-python.enable = true;
+      };
 
-        -- Setup VS Code file support
-        require("dap.ext.vscode").load_launchjs(nil, ${helpers.toLuaObject config.nvim.dap.vscode-adapters})
-      '';
-      keymaps = [
-        {
-          key = "<leader>dB";
-          mode = "n";
-          action.__raw = ''function() require("dap").set_breakpoint(vim.fn.input('Breakpoint condition: ')) end'';
-          options.desc = "Breakpoint Condition";
-        }
-        {
-          key = "<leader>db";
-          mode = "n";
-          action.__raw = ''function() require("dap").toggle_breakpoint() end'';
-          options.desc = "Toggle Breakpoint";
-        }
-        {
-          key = "<leader>dc";
-          mode = "n";
-          action.__raw = ''function() require("dap").continue() end'';
-          options.desc = "Continue";
-        }
-        {
-          key = "<leader>da";
-          mode = "n";
-          action.__raw = ''function() require("dap").continue({ before = get_args }) end'';
-          options.desc = "Run with Args";
-        }
-        {
-          key = "<leader>dC";
-          mode = "n";
-          action.__raw = ''function() require("dap").run_to_cursor() end'';
-          options.desc = "Run to Cursor";
-        }
-        {
-          key = "<leader>dg";
-          mode = "n";
-          action.__raw = ''function() require("dap").goto_() end'';
-          options.desc = "Go to Line (No Execute)";
-        }
-        {
-          key = "<leader>di";
-          mode = "n";
-          action.__raw = ''function() require("dap").step_into() end'';
-          options.desc = "Step Into";
-        }
-        {
-          key = "<leader>dj";
-          mode = "n";
-          action.__raw = ''function() require("dap").down() end'';
-          options.desc = "Down";
-        }
-        {
-          key = "<leader>dk";
-          mode = "n";
-          action.__raw = ''function() require("dap").up() end'';
-          options.desc = "Up";
-        }
-        {
-          key = "<leader>dl";
-          mode = "n";
-          action.__raw = ''function() require("dap").run_last() end'';
-          options.desc = "Run Last";
-        }
-        {
-          key = "<leader>do";
-          mode = "n";
-          action.__raw = ''function() require("dap").step_out() end'';
-          options.desc = "Step Out";
-        }
-        {
-          key = "<leader>dO";
-          mode = "n";
-          action.__raw = ''function() require("dap").step_over() end'';
-          options.desc = "Step Over";
-        }
-        {
-          key = "<leader>dp";
-          mode = "n";
-          action.__raw = ''function() require("dap").pause() end'';
-          options.desc = "Pause";
-        }
-        {
-          key = "<leader>dr";
-          mode = "n";
-          action.__raw = ''function() require("dap").repl.toggle() end'';
-          options.desc = "Toggle REPL";
-        }
-        {
-          key = "<leader>ds";
-          mode = "n";
-          action.__raw = ''function() require("dap").session() end'';
-          options.desc = "Session";
-        }
-        {
-          key = "<leader>dt";
-          mode = "n";
-          action.__raw = ''function() require("dap").terminate() end'';
-          options.desc = "Terminate";
-        }
-        {
-          key = "<leader>dw";
-          mode = "n";
-          action.__raw = ''function() require("dap.ui.widgets").hover() end'';
-          options.desc = "Widgets";
-        }
-        {
-          key = "<leader>du";
-          mode = "n";
-          action.__raw = ''function() require("dapui").toggle({ }) end'';
-          options.desc = "Dap UI";
-        }
-        {
-          key = "<leader>de";
-          mode = ["n" "v"];
-          action.__raw = ''function() require("dapui").eval() end'';
-          options.desc = "Eval";
-        }
-      ];
-      plugins.which-key.registrations."<leader>d".name = "+debug";
+      configurations = {
+        sh = lib.optionals pkgs.stdenv.isLinux [sh-config];
+      };
+
+      adapters = {
+        executables = {
+          bashdb = lib.mkIf pkgs.stdenv.isLinux {command = "${lib.getExe pkgs.bashdb}";};
+        };
+      };
     };
+
+    plugins.lualine.sections.lualine_x = lib.mkOrder 900 [
+      {
+        extraConfig.__raw = ''
+          {
+            function() return " " .. require("dap").status() end,
+            cond = function() return require("dap").status() ~= "" end,
+          }
+        '';
+      }
+    ];
+
+    extraConfigLua = ''
+      -- Automatically open/close dap-ui
+      local dap, dapui = require("dap"), require("dapui")
+      dap.listeners.before.attach.dapui_config = function()
+        dapui.open()
+      end
+      dap.listeners.before.launch.dapui_config = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated.dapui_config = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited.dapui_config = function()
+        dapui.close()
+      end
+
+      -- Setup VS Code file support
+      require("dap.ext.vscode").load_launchjs(nil, ${helpers.toLuaObject config.nvim.dap.vscode-adapters})
+
+      require('dap-python').test_runner = "pytest"
+    '';
+
+    keymaps = [
+      # Debugger Mappings
+      {
+        mode = ["n" "v"];
+        key = "<leader>d";
+        action = "+debug";
+        options = {
+          desc = "🛠️ Debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dc";
+        action = ":lua require('dap').continue()<CR>";
+        options = {
+          desc = "Start/continue debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<F5>";
+        action = ":lua require('dap').continue()<CR>";
+        options = {
+          desc = "Start/continue debug";
+          silent = true;
+        };
+      }
+      {
+        mode = ["n" "v"];
+        key = "<Leader>dP";
+        # action = "function() require('dap.ui.widgets').preview() end";
+        action = ":lua require('dap.ui.widgets').preview()<CR>";
+        options = {
+          desc = "Preview";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dp";
+        # action = ":lua require('dap').pause()<CR>";
+        action = ":lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>";
+        options = {
+          # desc = "Pause debug";
+          desc = "DapLogPoint";
+          silent = true;
+        };
+      }
+      {
+        key = "<F6>";
+        action = ":lua require('dap').pause()<CR>";
+        options = {
+          desc = "Pause debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dr";
+        action = ":lua require('dap').restart()<CR>";
+        options = {
+          desc = "Restart debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<C-F5>";
+        action = ":lua require('dap').restart()<CR>";
+        options = {
+          desc = "Restart debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>ds";
+        action = ":lua require('dap').run_to_cursor()<CR>";
+        options = {
+          desc = "Run to cursor";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dq";
+        action = ":lua require('dap').close()<CR>";
+        options = {
+          desc = "Close debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dQ";
+        action = ":lua require('dap').terminate()<CR>";
+        options = {
+          desc = "Terminate debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<S-F5>";
+        action = ":lua require('dap').terminate()<CR>";
+        options = {
+          desc = "Terminate debug";
+          silent = true;
+        };
+      }
+      {
+        key = "<F9>";
+        action = ":lua require('dap').toggle_breakpoint()<CR>";
+        options = {
+          desc = "Toggle breakpoint";
+          silent = true;
+        };
+      }
+      {
+        key = "<S-F9>";
+        action = ":lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>";
+        options = {
+          desc = "Set conditional breakpoint";
+          silent = true;
+        };
+      }
+      # {
+      #   key = "<leader>dB";
+      #   action = ":lua require('dap').clear_breakpoints()<CR>";
+      #   options = { desc = "Clear breakpoints"; silent = true; };
+      # }
+      {
+        key = "<leader>do";
+        action = ":lua require('dap').step_over()<CR>";
+        options = {
+          desc = "Step over";
+          silent = true;
+        };
+      }
+      {
+        key = "<F10>";
+        action = ":lua require('dap').step_over()<CR>";
+        options = {
+          desc = "Step over";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>di";
+        action = ":lua require('dap').step_into()<CR>";
+        options = {
+          desc = "Step into";
+          silent = true;
+        };
+      }
+      {
+        key = "<F11>";
+        action = ":lua require('dap').step_into()<CR>";
+        options = {
+          desc = "Step into";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dO";
+        action = ":lua require('dap').step_out()<CR>";
+        options = {
+          desc = "Step out";
+          silent = true;
+        };
+      }
+      {
+        key = "<S-F11>";
+        action = ":lua require('dap').step_out()<CR>";
+        options = {
+          desc = "Step out";
+          silent = true;
+        };
+      }
+      # {
+      #   key = "<leader>dE";
+      #   action = ":lua require('dap.ui).widgets'.hover()<CR>";
+      #   options = { desc = "Evaluate expression"; silent = true; };
+      # }
+      {
+        key = "<leader>dR";
+        action = ":lua require('dap').repl.toggle()<CR>";
+        options = {
+          desc = "Toggle REPL";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>du";
+        action = ":lua require'dapui'.toggle()<CR>";
+        options = {
+          desc = "Toggle debugger UI";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dh";
+        action = ":lua require'dap.ui.widgets'.hover()<CR>";
+        options = {
+          desc = "Debugger hint";
+          silent = true;
+        };
+      }
+    ];
+    plugins.which-key.registrations."<leader>d".name = "+debug";
   };
 }
