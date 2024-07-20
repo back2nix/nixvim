@@ -1,5 +1,21 @@
 {
   userCommands = {
+    DeleteEmptyLines = {
+      command.__raw = ''
+        function()
+          if vim.fn.mode() == 'v' or vim.fn.mode() == 'V' then
+            -- Сохраняем текущее выделение
+            vim.cmd('normal! gv')
+            -- Удаляем пустые строки в выделенной области
+            vim.cmd('silent! \'<,\'>g/^\\s*$/d')
+          else
+            -- Удаляем пустые строки во всем файле
+            vim.cmd('silent! %g/^\\s*$/d')
+          end
+        end
+      '';
+      desc = "Удаляет пустые строки во всем файле или в выделенной области";
+    };
     CopyRelativePath = {
       command = "let @+ = expand('%:p:.')";
       desc = "Копирует относительный путь текущего файла в буфер обмена";
@@ -209,6 +225,14 @@
       action = "<cmd>CopyModulePath<cr>";
       options = {
         desc = "copy go github.com/ex...";
+      };
+    }
+    {
+      mode = ["n" "v"];
+      key = "<leader>ml";
+      action = "<cmd>DeleteEmptyLines<cr>";
+      options = {
+        desc = "delete empty lines";
       };
     }
   ];
