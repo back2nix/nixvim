@@ -79,10 +79,10 @@
           text = " ";
           texthl = "DapBreakpointCondition";
         };
-        dapBreakpointRejected = {
-          text = " ";
-          texthl = "DapBreakpointRejected";
-        };
+        # dapBreakpointRejected = {
+        #   text = " ";
+        #   texthl = "DapBreakpointRejected";
+        # };
         dapLogPoint = {
           text = "◆";
           texthl = "DapLogPoint";
@@ -90,6 +90,10 @@
         dapStopped = {
           text = "󰁕";
           texthl = "DapStopped";
+        };
+        dapBreakpointRejected = {
+          text = "❌"; # 🟥
+          texthl = "DapBreakpointRejected";
         };
       };
       extensions = {
@@ -220,7 +224,6 @@
       {
         mode = ["n" "v"];
         key = "<Leader>dP";
-        # action = "function() require('dap.ui.widgets').preview() end";
         action = ":lua require('dap.ui.widgets').preview()<CR>";
         options = {
           desc = "Preview";
@@ -229,7 +232,6 @@
       }
       {
         key = "<leader>dp";
-        # action = ":lua require('dap').pause()<CR>";
         action = ":lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>";
         options = {
           # desc = "Pause debug";
@@ -293,27 +295,6 @@
           silent = true;
         };
       }
-      {
-        key = "<F9>";
-        action = ":lua require('dap').toggle_breakpoint()<CR>";
-        options = {
-          desc = "Toggle breakpoint";
-          silent = true;
-        };
-      }
-      {
-        key = "<S-F9>";
-        action = ":lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition: '))<CR>";
-        options = {
-          desc = "Set conditional breakpoint";
-          silent = true;
-        };
-      }
-      # {
-      #   key = "<leader>dB";
-      #   action = ":lua require('dap').clear_breakpoints()<CR>";
-      #   options = { desc = "Clear breakpoints"; silent = true; };
-      # }
       {
         key = "<leader>do";
         action = ":lua require('dap').step_over()<CR>";

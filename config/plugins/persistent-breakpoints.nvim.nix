@@ -24,7 +24,28 @@ in {
         end
       '';
       options = {
-        desc = "Установить условную точку останова";
+        desc = "Set conditional breakpoint";
+        silent = true;
+      };
+    }
+    {
+      mode = ["n"];
+      key = "<S-F9>";
+      action.__raw = ''
+        function()
+        require("persistent-breakpoints.api").set_conditional_breakpoint()
+        end
+      '';
+      options = {
+        desc = "Set conditional breakpoint";
+        silent = true;
+      };
+    }
+    {
+      key = "<F9>";
+      action.__raw = ''function() require('persistent-breakpoints.api').toggle_breakpoint() end'';
+      options = {
+        desc = "Toggle breakpoint";
         silent = true;
       };
     }
@@ -33,7 +54,7 @@ in {
       key = "<leader>db";
       action.__raw = ''function() require('persistent-breakpoints.api').toggle_breakpoint() end'';
       options = {
-        desc = "Поставить breakpoint";
+        desc = "Set breakpoint";
         silent = true;
       };
     }
@@ -42,7 +63,7 @@ in {
       key = "<leader>dB";
       action.__raw = ''function() require("persistent-breakpoints.api").clear_all_breakpoints() end'';
       options = {
-        desc = "Очистить breakpoint";
+        desc = "Clear all breakpoints";
         silent = true;
       };
     }
