@@ -6,8 +6,8 @@
     src = pkgs.fetchFromGitHub {
       owner = "back2nix";
       repo = "persistent-breakpoints.nvim";
-      rev = "e78d03b94f85167788ff1aa47bf04bbefdcee04c";
-      sha256 = "sha256-DcMxbGuectdXaXWoCB6iJqCUaGvdWZ0YjTHCIU1z2nI=";
+      rev = "49ce24d2968e84595e9a8215adfeb37fd65690ea";
+      sha256 = "sha256-euwc9XD02g8W52Z8SzjSInLnatS3aGLY44Frvd+yDTc=";
     };
     meta.homepage = "https://github.com/back2nix/persistent-breakpoints.nvim";
   };
