@@ -14,6 +14,7 @@ in {
 
     ./plugins-more.nix
 
+    ./plugins/dap.nix
     ./plugins/persistent-breakpoints.nvim.nix
     ./plugins/git-blame.nvim.nix
     ./plugins/buffer.nix
@@ -28,7 +29,6 @@ in {
     ./plugins/snippets/luasnip.nix
     # ./plugins/utils/hardtime.nix
     ./plugins/utils/gitlinker.nix
-    ./plugins/dap.nix
 
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix

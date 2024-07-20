@@ -230,15 +230,15 @@
           silent = true;
         };
       }
-      {
-        key = "<leader>dp";
-        action = ":lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>";
-        options = {
-          # desc = "Pause debug";
-          desc = "DapLogPoint";
-          silent = true;
-        };
-      }
+      # {
+      #   key = "<leader>dp";
+      #   action = ":lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>";
+      #   options = {
+      #     # desc = "Pause debug";
+      #     desc = "DapLogPoint";
+      #     silent = true;
+      #   };
+      # }
       {
         key = "<F6>";
         action = ":lua require('dap').pause()<CR>";

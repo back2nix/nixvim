@@ -4,12 +4,12 @@
     pname = "persistent-breakpoints.nvim";
     version = "2024-05-04";
     src = pkgs.fetchFromGitHub {
-      owner = "Weissle";
+      owner = "back2nix";
       repo = "persistent-breakpoints.nvim";
-      rev = "01e43512ef8d137f2b9e5c1c74fd35c37e787b59";
-      sha256 = "sha256-TSnieTf1zLcS755DJ9ZxwREcm+MbGwMXUs4XOdqe0bM=";
+      rev = "e78d03b94f85167788ff1aa47bf04bbefdcee04c";
+      sha256 = "sha256-DcMxbGuectdXaXWoCB6iJqCUaGvdWZ0YjTHCIU1z2nI=";
     };
-    meta.homepage = "https://github.com/Weissle/persistent-breakpoints.nvim";
+    meta.homepage = "https://github.com/back2nix/persistent-breakpoints.nvim";
   };
 in {
   extraPlugins = [persistent-breakpoints-nvim];
@@ -64,6 +64,14 @@ in {
       action.__raw = ''function() require("persistent-breakpoints.api").clear_all_breakpoints() end'';
       options = {
         desc = "Clear all breakpoints";
+        silent = true;
+      };
+    }
+    {
+      key = "<leader>dp";
+      action = ":lua require('persistent-breakpoints.api').set_log_point()<CR>";
+      options = {
+        desc = "DapLogPoint";
         silent = true;
       };
     }
