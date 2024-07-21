@@ -44,8 +44,21 @@
         system,
         ...
       }: let
+        overlays = [
+          (self: super: {
+          })
+          (final: prev: {
+            bashdbInteractive = final.bashdb.overrideAttrs {
+              buildInputs = (prev.buildInputs or []) ++ [final.bashInteractive];
+            };
+          })
+        ];
+        pkgs = import inputs.nixpkgs {
+          inherit system overlays;
+          config.allowUnfree = true;
+        };
         pkgs-master = import inputs.nixpkgs-master {
-          inherit system;
+          inherit system overlays;
           config.allowUnfree = true;
         };
 

@@ -30,14 +30,14 @@
       request = "launch";
       name = "Launch (BashDB)";
       showDebugOutput = true;
-      pathBashdb = "${lib.getExe pkgs.bashdb}";
-      pathBashdbLib = "${pkgs.bashdb}/share/basdhb/lib/";
+      pathBashdb = "${lib.getExe pkgs.bashdbInteractive}";
+      pathBashdbLib = "${pkgs.bashdbInteractive}/share/basdhb/lib/";
       trace = true;
       file = ''''${file}'';
       program = ''''${file}'';
       cwd = ''''${workspaceFolder}'';
       pathCat = "cat";
-      pathBash = "${lib.getExe pkgs.bash}";
+      pathBash = "${lib.getExe pkgs.bashInteractive}";
       pathMkfifo = "mkfifo";
       pathPkill = "pkill";
       args = {};
@@ -156,7 +156,7 @@
         executables = {
           # not working
           # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
-          bashdb = lib.mkIf pkgs.stdenv.isLinux {command = "${lib.getExe pkgs.bashdb}";};
+          bashdb = lib.mkIf pkgs.stdenv.isLinux {command = "${lib.getExe pkgs.bashdbInteractive}";};
         };
       };
     };
