@@ -602,6 +602,7 @@ in {
             treesitter = "[treesitter]";
             # neorg = "[neorg]";
             cmp_tabby = "[Tabby]";
+            go_pkgs = "[pkgs]";
           };
         };
       };
