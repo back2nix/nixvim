@@ -582,6 +582,7 @@ in {
             {name = "nvim_lsp_signature_help";}
             {name = "treesitter";}
             {name = "dap";}
+            {name = "go_pkgs";}
           ];
         };
       };

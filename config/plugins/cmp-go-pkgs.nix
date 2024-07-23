@@ -21,19 +21,17 @@ in {
     local cmp = require("cmp")
 
     vim.api.nvim_create_autocmd("FileType", {
-      pattern = "go",
-      callback = function()
-        cmp.setup.buffer({
-          sources = {
-            { name = "go_pkgs" },
-          },
-          matching = { disallow_symbol_nonprefix_matching = false },
-        })
-      end,
+    pattern = "go",
+    callback = function()
+    local cmp = require('cmp')
+    cmp.setup.buffer({
+      sources = cmp.config.sources(
+        {{ name = "go_pkgs" }},
+        cmp.config.sources()  -- This includes all previously configured sources
+      ),
+      matching = { disallow_symbol_nonprefix_matching = false },
     })
-
-    cmp.setup({
-      -- Your global cmp setup (if any) goes here
+    end,
     })
   '';
 }

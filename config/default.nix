@@ -12,6 +12,7 @@ in {
     ./user-commands.nix
     ./keys.nix
 
+    # ./plugins/cmp-go-pkgs.nix
     ./plugins-more.nix
 
     ./plugins/dap.nix
@@ -22,7 +23,6 @@ in {
     ./plugins/oil.nix
     ./plugins/git-worktree.nix
     ./plugins/spell.nix
-    # ./plugins/cmp-go-pkgs.nix
     # ./plugins/kaf.nvim.nix
 
     ./plugins/ui/telescope.nix
