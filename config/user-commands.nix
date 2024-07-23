@@ -1,5 +1,111 @@
 {
   userCommands = {
+    StringToPattern = {
+      command.__raw = ''
+        function ()
+          -- Получаем текущий режим
+          local mode = vim.api.nvim_get_mode().mode
+
+          -- Если не в визуальном режиме, выходим
+          if mode:sub(1,1) ~= 'v' then
+            print("Пожалуйста, выделите текст перед использованием этой функции")
+            return
+          end
+
+          -- Переходим в нормальный режим для обновления меток
+          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+
+          -- Добавляем небольшую задержку для обеспечения обновления меток
+          vim.defer_fn(function()
+            -- Получаем текущие позиции курсора
+            local start_pos = vim.fn.getpos("'<")
+            local end_pos = vim.fn.getpos("'>")
+
+            -- Получаем содержимое текущего буфера
+            local start_row, start_col = start_pos[2] - 1, start_pos[3] - 1
+            local end_row, end_col = end_pos[2] - 1, end_pos[3]
+
+            -- Проверяем валидность позиций
+            if start_row > end_row or (start_row == end_row and start_col >= end_col) then
+              print("Неверное выделение")
+              return
+            end
+
+            local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+            local new_lines = {}
+            for _, line in ipairs(lines) do
+              table.insert(new_lines, line)
+            end
+
+            function analyze_uuid(input)
+                local function process_string(str)
+                    -- Сохраняем позиции дефисов
+                    local dash_positions = {}
+                    for i = 1, #str do
+                        if str:sub(i, i) == "-" then
+                            table.insert(dash_positions, i)
+                        end
+                    end
+
+                    -- Удаляем все не-шестнадцатеричные символы
+                    local clean_str = str:gsub("[^0-9A-Fa-f]", "")
+
+                    -- Формируем результат
+                    local parts = {}
+                    local start = 1
+                    for i, pos in ipairs(dash_positions) do
+                        local len = pos - start
+                        if len > 0 then
+                            table.insert(parts, "[0-9a-f]{" .. len .. "}")
+                        end
+                        start = pos + 1
+                    end
+
+                    -- Добавляем последнюю часть
+                    local last_len = #clean_str - (start - 1)
+                    if last_len > 0 then
+                        table.insert(parts, "[0-9a-f]{" .. last_len .. "}")
+                    end
+
+                    -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
+                    if #parts == 0 then
+                        return 'stringTools.NewRandomStringFromPattern("")'
+                    end
+
+                    -- Собираем финальную строку
+                    local pattern = table.concat(parts, "-")
+                    return 'stringTools.NewRandomStringFromPattern("' .. pattern .. '")'
+                end
+
+                if type(input) == "table" then
+                    -- Если вход - таблица, обрабатываем каждый элемент
+                    local results = {}
+                    for _, item in ipairs(input) do
+                        table.insert(results, process_string(tostring(item)))
+                    end
+                    return results
+                elseif type(input) == "string" then
+                    -- Если вход - строка, обрабатываем её
+                    return {process_string(input)}
+                else
+                    -- Если тип входа неизвестен, возвращаем пустой паттерн
+                    return {'stringTools.NewRandomStringFromPattern("")'}
+                end
+            end
+            local ok, err = pcall(function()
+              vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_uuid(new_lines))
+            end)
+
+            if not ok then
+              print("Ошибка при замене текста: " .. tostring(err))
+            else
+              print("Текст успешно заменен на 'Hello World'")
+            end
+          end, 10) -- 10 мс задержки
+        end
+      '';
+      desc = "Преобразует выделенную строку в шаблон для генерации случайных строк";
+    };
     DeleteEmptyLines = {
       command.__raw = ''
         function()
@@ -233,6 +339,14 @@
       action = "<cmd>DeleteEmptyLines<cr>";
       options = {
         desc = "delete empty lines";
+      };
+    }
+    {
+      mode = ["n" "v"];
+      key = "<leader>mP";
+      action = "<cmd>StringToPattern<cr>";
+      options = {
+        desc = "9a522cb9-a2ab -> '..[0-9a-f]{8}-[0-9a-f]{4}..'";
       };
     }
   ];
