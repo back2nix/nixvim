@@ -37,44 +37,66 @@
               table.insert(new_lines, line)
             end
 
-            function analyze_uuid(input)
-              local function process_string(str)
-                  -- Удаляем все не-шестнадцатеричные символы, кроме дефисов
-                  local clean_str = str:gsub("[^0-9A-Fa-f-]", "")
+            function analyze_string(input)
+                local function process_string(str)
+                    -- Удаляем все символы, кроме букв, цифр и дефисов
+                    local clean_str = str:gsub("[^%w-]", "")
+                    -- Разделяем строку по дефисам
+                    local parts = {}
+                    for part in clean_str:gmatch("[^-]+") do
+                        local pattern = ""
+                        if part:match("^%d+$") then
+                            pattern = "[0-9]"
+                        elseif part:match("^[a-f]+$") then
+                            pattern = "[a-f]"
+                        elseif part:match("^[A-F]+$") then
+                            pattern = "[A-F]"
+                        elseif part:match("^[a-z]+$") then
+                            pattern = "[a-z]"
+                        elseif part:match("^[A-Z]+$") then
+                            pattern = "[A-Z]"
+                        elseif part:match("^[A-Za-z]+$") then
+                            pattern = "[A-Za-z]"
+                        elseif part:match("^[0-9A-F]+$") then
+                            pattern = "[0-9A-F]"
+                        elseif part:match("^[0-9a-f]+$") then
+                            pattern = "[0-9a-f]"
+                        elseif part:match("^[0-9A-Z]+$") then
+                            pattern = "[0-9A-Z]"
+                        elseif part:match("^[0-9a-z]+$") then
+                            pattern = "[0-9a-z]"
+                        else
+                            pattern = "[0-9A-Za-z]"
+                        end
+                        pattern = pattern .. "{" .. #part .. "}"
+                        table.insert(parts, pattern)
+                    end
+                    -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
+                    if #parts == 0 then
+                        return 'stringTools.NewRandomStringFromPattern("")'
+                    end
+                    -- Собираем финальную строку
+                    local pattern = table.concat(parts, "-")
+                    return 'stringTools.NewRandomStringFromPattern("' .. pattern .. '")'
+                end
 
-                  -- Разделяем строку по дефисам
-                  local parts = {}
-                  for part in clean_str:gmatch("[^-]+") do
-                      table.insert(parts, "[0-9a-f]{" .. #part .. "}")
-                  end
-
-                  -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
-                  if #parts == 0 then
-                      return 'stringTools.NewRandomStringFromPattern("")'
-                  end
-
-                  -- Собираем финальную строку
-                  local pattern = table.concat(parts, "-")
-                  return 'stringTools.NewRandomStringFromPattern("' .. pattern .. '")'
-              end
-
-              if type(input) == "table" then
-                  -- Если вход - таблица, обрабатываем каждый элемент
-                  local results = {}
-                  for _, item in ipairs(input) do
-                      table.insert(results, process_string(tostring(item)))
-                  end
-                  return results
-              elseif type(input) == "string" then
-                  -- Если вход - строка, обрабатываем её
-                  return {process_string(input)}
-              else
-                  -- Если тип входа неизвестен, возвращаем пустой паттерн
-                  return {'stringTools.NewRandomStringFromPattern("")'}
-              end
+                if type(input) == "table" then
+                    -- Если вход - таблица, обрабатываем каждый элемент
+                    local results = {}
+                    for _, item in ipairs(input) do
+                        table.insert(results, process_string(tostring(item)))
+                    end
+                    return results
+                elseif type(input) == "string" then
+                    -- Если вход - строка, обрабатываем её
+                    return {process_string(input)}
+                else
+                    -- Если тип входа неизвестен, возвращаем пустой паттерн
+                    return {'stringTools.NewRandomStringFromPattern("")'}
+                end
             end
             local ok, err = pcall(function()
-              vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_uuid(new_lines))
+              vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_string(new_lines))
             end)
 
             if not ok then
