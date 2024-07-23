@@ -22,7 +22,7 @@ in {
     ./plugins/oil.nix
     ./plugins/git-worktree.nix
     ./plugins/spell.nix
-    ./plugins/cmp-go-pkgs.nix
+    # ./plugins/cmp-go-pkgs.nix
     # ./plugins/kaf.nvim.nix
 
     ./plugins/ui/telescope.nix
