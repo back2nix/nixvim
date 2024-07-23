@@ -38,59 +38,40 @@
             end
 
             function analyze_uuid(input)
-                local function process_string(str)
-                    -- Сохраняем позиции дефисов
-                    local dash_positions = {}
-                    for i = 1, #str do
-                        if str:sub(i, i) == "-" then
-                            table.insert(dash_positions, i)
-                        end
-                    end
+              local function process_string(str)
+                  -- Удаляем все не-шестнадцатеричные символы, кроме дефисов
+                  local clean_str = str:gsub("[^0-9A-Fa-f-]", "")
 
-                    -- Удаляем все не-шестнадцатеричные символы
-                    local clean_str = str:gsub("[^0-9A-Fa-f]", "")
+                  -- Разделяем строку по дефисам
+                  local parts = {}
+                  for part in clean_str:gmatch("[^-]+") do
+                      table.insert(parts, "[0-9a-f]{" .. #part .. "}")
+                  end
 
-                    -- Формируем результат
-                    local parts = {}
-                    local start = 1
-                    for i, pos in ipairs(dash_positions) do
-                        local len = pos - start
-                        if len > 0 then
-                            table.insert(parts, "[0-9a-f]{" .. len .. "}")
-                        end
-                        start = pos + 1
-                    end
+                  -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
+                  if #parts == 0 then
+                      return 'stringTools.NewRandomStringFromPattern("")'
+                  end
 
-                    -- Добавляем последнюю часть
-                    local last_len = #clean_str - (start - 1)
-                    if last_len > 0 then
-                        table.insert(parts, "[0-9a-f]{" .. last_len .. "}")
-                    end
+                  -- Собираем финальную строку
+                  local pattern = table.concat(parts, "-")
+                  return 'stringTools.NewRandomStringFromPattern("' .. pattern .. '")'
+              end
 
-                    -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
-                    if #parts == 0 then
-                        return 'stringTools.NewRandomStringFromPattern("")'
-                    end
-
-                    -- Собираем финальную строку
-                    local pattern = table.concat(parts, "-")
-                    return 'stringTools.NewRandomStringFromPattern("' .. pattern .. '")'
-                end
-
-                if type(input) == "table" then
-                    -- Если вход - таблица, обрабатываем каждый элемент
-                    local results = {}
-                    for _, item in ipairs(input) do
-                        table.insert(results, process_string(tostring(item)))
-                    end
-                    return results
-                elseif type(input) == "string" then
-                    -- Если вход - строка, обрабатываем её
-                    return {process_string(input)}
-                else
-                    -- Если тип входа неизвестен, возвращаем пустой паттерн
-                    return {'stringTools.NewRandomStringFromPattern("")'}
-                end
+              if type(input) == "table" then
+                  -- Если вход - таблица, обрабатываем каждый элемент
+                  local results = {}
+                  for _, item in ipairs(input) do
+                      table.insert(results, process_string(tostring(item)))
+                  end
+                  return results
+              elseif type(input) == "string" then
+                  -- Если вход - строка, обрабатываем её
+                  return {process_string(input)}
+              else
+                  -- Если тип входа неизвестен, возвращаем пустой паттерн
+                  return {'stringTools.NewRandomStringFromPattern("")'}
+              end
             end
             local ok, err = pcall(function()
               vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_uuid(new_lines))
