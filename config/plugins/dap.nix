@@ -172,6 +172,10 @@
       }
     ];
 
+    extraPlugins = with pkgs.vimPlugins; [
+      telescope-dap-nvim
+    ];
+
     extraConfigLua = ''
       -- Automatically open/close dap-ui
       local dap, dapui = require("dap"), require("dapui")
@@ -369,6 +373,38 @@
         action = ":lua require'dap.ui.widgets'.hover()<CR>";
         options = {
           desc = "Debugger hint";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dtc";
+        action = "<cmd>Telescope dap commands<cr>";
+        options = {
+          desc = "Commands";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dtb";
+        action = "<cmd>Telescope dap list_breakpoints<cr>";
+        options = {
+          desc = "List Breakpointshint";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dtv";
+        action = "<cmd>Telescope dap variables<cr>";
+        options = {
+          desc = "Variables";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>dtf";
+        action = "<cmd>Telescope dap frames<cr>";
+        options = {
+          desc = "Frames";
           silent = true;
         };
       }
