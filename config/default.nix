@@ -16,6 +16,7 @@ in {
     ./plugins-more.nix
 
     ./plugins/dap.nix
+    # ./plugins/nvim-dbee.nix
     ./plugins/mason-nvim.nix
     ./plugins/persistent-breakpoints.nvim.nix
     ./plugins/git-blame.nvim.nix
