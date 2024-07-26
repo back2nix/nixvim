@@ -4,6 +4,42 @@
   ...
 }: {
   autoCmd = [
+    {
+      event = "BufWritePost";
+      pattern = ["*"];
+      callback.__raw =
+        # Lua
+        ''
+          function()
+            local function find_git_root()
+              local current_dir = vim.fn.expand('%:p:h')
+              local git_root = vim.fn.systemlist('git -C ' .. vim.fn.shellescape(current_dir) .. ' rev-parse --show-toplevel')[1]
+              return vim.v.shell_error == 0 and git_root or nil
+            end
+
+            local file = vim.fn.expand("%:p")
+            local root = find_git_root()
+            if not root then
+              print("Не удалось найти корень git-репозитория.")
+              return
+            end
+
+            local command = "make my-custom-command-nvim-after-save FILE="
+            local full_command = string.format("cd %s && %s%s", vim.fn.shellescape(root), command, vim.fn.shellescape(file))
+
+            local output = vim.fn.system(full_command)
+
+            if vim.v.shell_error == 0 then
+              if output ~= "" then
+                -- print(output)
+              end
+            else
+              -- print(string.format("Ошибка при выполнении команды для %s: %s", file, output))
+            end
+          end
+        '';
+    }
+
     # Vertically center document when entering insert mode
     {
       event = "InsertEnter";
