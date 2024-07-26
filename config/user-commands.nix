@@ -20,7 +20,7 @@
             return
           end
 
-          local command = "make my-custom-command-nvim-after-save DIR="
+          local command = "make my-custom-command-nvim-fmt DIR="
           local full_command = string.format("cd %s && %s%s", vim.fn.shellescape(root), command, vim.fn.shellescape(file_dir))
           -- print("Выполняемая команда:", full_command)
 

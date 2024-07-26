@@ -25,3 +25,12 @@ my-custom-command-nvim-after-save:
 		exit 1; \
 	fi
 	@echo "Выполнение пользовательской команды для файла: $(DIR)" > out.txt
+
+
+.PHONY: my-custom-command-nvim-after-save
+my-custom-command-nvim-fmt:
+	@if [ -z "$(DIR)" ]; then \
+		echo "Ошибка: Не указан файл. Используйте 'make my-custom-command-nvim-fmt DIR=путь/к/папке'"; \
+		exit 1; \
+	fi
+	@echo "Выполнение пользовательской команды для файла: $(DIR)" > out.txt
