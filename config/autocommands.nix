@@ -13,11 +13,15 @@
           function()
             local function find_git_root()
               local current_dir = vim.fn.expand('%:p:h')
+              print("Текущая директория:", current_dir)
               local git_root = vim.fn.systemlist('git -C ' .. vim.fn.shellescape(current_dir) .. ' rev-parse --show-toplevel')[1]
+              print("Найденный корень git-репозитория:", git_root)
               return vim.v.shell_error == 0 and git_root or nil
             end
 
             local file = vim.fn.expand("%:p")
+            print("Обрабатываемый файл:", file)
+
             local root = find_git_root()
             if not root then
               print("Не удалось найти корень git-репозитория.")
@@ -26,15 +30,19 @@
 
             local command = "make my-custom-command-nvim-after-save FILE="
             local full_command = string.format("cd %s && %s%s", vim.fn.shellescape(root), command, vim.fn.shellescape(file))
+            print("Выполняемая команда:", full_command)
 
             local output = vim.fn.system(full_command)
+            print("Результат выполнения команды:", output)
 
             if vim.v.shell_error == 0 then
               if output ~= "" then
-                -- print(output)
+                print("Команда выполнена успешно с выводом:", output)
+              else
+                print("Команда выполнена успешно без вывода")
               end
             else
-              -- print(string.format("Ошибка при выполнении команды для %s: %s", file, output))
+              print(string.format("Ошибка при выполнении команды для %s: %s", file, output))
             end
           end
         '';
