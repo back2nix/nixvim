@@ -13,36 +13,33 @@
           function()
             local function find_git_root()
               local current_dir = vim.fn.expand('%:p:h')
-              -- print("Текущая директория:", current_dir)
               local git_root = vim.fn.systemlist('git -C ' .. vim.fn.shellescape(current_dir) .. ' rev-parse --show-toplevel')[1]
-              -- print("Найденный корень git-репозитория:", git_root)
               return vim.v.shell_error == 0 and git_root or nil
             end
 
             local file_dir = vim.fn.expand("%:p:h")
-            -- print("Обрабатываемая директория:", file_dir)
-
             local root = find_git_root()
             if not root then
-              -- print("Не удалось найти корень git-репозитория.")
               return
             end
 
             local command = "make my-custom-command-nvim-after-save DIR="
             local full_command = string.format("cd %s && %s%s", vim.fn.shellescape(root), command, vim.fn.shellescape(file_dir))
-            -- print("Выполняемая команда:", full_command)
 
+            -- Выполняем команду без предварительной проверки
             local output = vim.fn.system(full_command)
-            -- print("Результат выполнения команды:", output)
 
-            if vim.v.shell_error == 0 then
-              if output ~= "" then
-                -- print("Команда выполнена успешно с выводом:", output)
+            -- Проверяем результат выполнения
+            if vim.v.shell_error ~= 0 then
+              -- Если произошла ошибка, проверяем, связана ли она с отсутствием make или правила
+              if string.match(output, "make: .* No such file or directory") or
+                 string.match(output, "make: *** No rule to make target") then
+                -- Если ошибка связана с отсутствием make или правила, молча завершаем работу
+                return
               else
-                -- print("Команда выполнена успешно без вывода")
+                -- Если ошибка другая, выводим сообщение об ошибке
+                print(string.format("Ошибка при выполнении команды для %s: %s", file_dir, output))
               end
-            else
-              print(string.format("Ошибка при выполнении команды для %s: %s", file_dir, output))
             end
           end
         '';
