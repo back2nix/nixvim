@@ -237,13 +237,15 @@ in {
         extensions = {
           fzf-native = {
             enable = true;
-            fuzzy = true;
-            overrideGenericSorter = true;
-            overrideFileSorter = true;
-            caseMode = "smart_case";
+            settings = {
+              fuzzy = true;
+              caseMode = "smart_case";
+              override_generic_sorter = true;
+              override_file_sorter = true;
+            };
           };
         };
-        defaults = {
+        settings.defaults = {
           # file_ignore_patterns = [".git" ".direnv" "target" "node_modules"];
           vimgrep_arguments = [
             "${pkgs.ripgrep}/bin/rg"
@@ -259,35 +261,33 @@ in {
           layout_config.prompt_position = "top";
           sorting_strategy = "ascending";
         };
-        extraOptions = {
-          pickers = {
-            git_files = {
-              disable_devicons = true;
-            };
-            find_files = {
-              disable_devicons = true;
-            };
-            buffers = {
-              disable_devicons = true;
-            };
-            live_grep = {
-              disable_devicons = true;
-            };
-            current_buffer_fuzzy_find = {
-              disable_devicons = true;
-            };
-            lsp_definitions = {
-              disable_devicons = true;
-            };
-            lsp_references = {
-              disable_devicons = true;
-            };
-            diagnostics = {
-              disable_devicons = true;
-            };
-            lsp_dynamic_workspace_symbols = {
-              disable_devicons = true;
-            };
+        settings.pickers = {
+          git_files = {
+            disable_devicons = true;
+          };
+          find_files = {
+            disable_devicons = true;
+          };
+          buffers = {
+            disable_devicons = true;
+          };
+          live_grep = {
+            disable_devicons = true;
+          };
+          current_buffer_fuzzy_find = {
+            disable_devicons = true;
+          };
+          lsp_definitions = {
+            disable_devicons = true;
+          };
+          lsp_references = {
+            disable_devicons = true;
+          };
+          diagnostics = {
+            disable_devicons = true;
+          };
+          lsp_dynamic_workspace_symbols = {
+            disable_devicons = true;
           };
         };
         keymaps = {
@@ -307,9 +307,7 @@ in {
 
       yanky = {
         enable = true;
-        picker.telescope = {
-          enable = true;
-        };
+        enableTelescope = true;
       };
 
       todo-comments = {
@@ -328,21 +326,23 @@ in {
       # https://github.com/jackyliu16/home-manager/blob/f792c1c57e240d24064850c6221719ad758c6c6b/vimAndNeovim/nixvim.nix#L97
       treesitter = {
         enable = true;
-        indent = true;
-        ensureInstalled = [
-          "rust"
-          "python"
-          "c"
-          "cpp"
-          "toml"
-          "nix"
-          "go"
-          "gomod"
-          "gotmpl"
-          "gosum"
-          "gowork"
-          "java"
-        ];
+        settings = {
+          indent.enable = true;
+          ensureInstalled = [
+            "rust"
+            "python"
+            "c"
+            "cpp"
+            "toml"
+            "nix"
+            "go"
+            "gomod"
+            "gotmpl"
+            "gosum"
+            "gowork"
+            "java"
+          ];
+        };
         grammarPackages = with config.plugins.treesitter.package.builtGrammars; [
           c
           go
@@ -380,10 +380,12 @@ in {
       lastplace.enable = true;
 
       none-ls = {
-        tempDir = "/tmp";
         enable = true;
         enableLspFormat = true;
-        updateInInsert = false;
+        settings = {
+          update_in_insert = false;
+          tempDir = "/tmp";
+        };
         sources = {
           code_actions = {
             gitsigns.enable = true;
@@ -511,7 +513,6 @@ in {
               };
             };
           };
-          nil_ls.enable = true;
           svelte.enable = false; # Svelte
           vuels.enable = false; # Vue
           tsserver.enable = true; # TS/JS
@@ -621,9 +622,6 @@ in {
       cmp-nvim-lsp-signature-help.enable = true;
       # cmp-tabby.host = "http://127.0.0.1:8080";
       # vim-lspconfig.enable = true;
-      nvim-cmp = {
-        enable = true;
-      };
       conform-nvim = {
         enable = true;
 
