@@ -351,14 +351,37 @@ in {
           gowork
           gotmpl
           cpp
-          nix
           bash
           html
           # help
           latex
           python
           rust
+
+          css
+          dockerfile
+          eex
+          elixir
+          gitcommit
+          gitignore
+          graphql
+          hcl
+          heex
+          javascript
+          json
+          lua
+          markdown
+          nix
+          proto
+          sql
+          starlark
+          terraform
+          toml
+          typescript
+          yaml
         ];
+
+        incrementalSelection.enable = true;
       };
       treesitter-context.enable = true;
       trouble.enable = true;
