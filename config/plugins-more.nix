@@ -381,7 +381,7 @@ in {
           yaml
         ];
 
-        incrementalSelection.enable = true;
+        settings.incrementalSelection.enable = true;
       };
       treesitter-context.enable = true;
       trouble.enable = true;
