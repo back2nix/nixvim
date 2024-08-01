@@ -33,115 +33,119 @@
       '';
       desc = "Fmt custom command";
     };
-    StringToPattern = {
-      command.__raw = ''
-        function ()
-          -- Получаем текущий режим
-          local mode = vim.api.nvim_get_mode().mode
+    # StringToPattern = {
+    #   command.__raw = ''
+    #     function (args)
+    #       -- Получаем текущий режим
+    #       local mode = vim.api.nvim_get_mode().mode
 
-          -- Если не в визуальном режиме, выходим
-          if mode:sub(1,1) ~= 'v' then
-            print("Пожалуйста, выделите текст перед использованием этой функции")
-            return
-          end
+    #       -- Если не в визуальном режиме, выходим
+    #       if mode:sub(1,1) ~= 'v' then
+    #         print("Пожалуйста, выделите текст перед использованием этой функции")
+    #         return
+    #       end
 
-          -- Переходим в нормальный режим для обновления меток
-          vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+    #       -- Переходим в нормальный режим для обновления меток
+    #       vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
 
-          -- Добавляем небольшую задержку для обеспечения обновления меток
-          vim.defer_fn(function()
-            -- Получаем текущие позиции курсора
-            local start_pos = vim.fn.getpos("'<")
-            local end_pos = vim.fn.getpos("'>")
+    #       -- Добавляем небольшую задержку для обеспечения обновления меток
+    #       vim.defer_fn(function()
+    #         -- Получаем текущие позиции курсора
+    #         local start_pos = vim.fn.getpos("'<")
+    #         local end_pos = vim.fn.getpos("'>")
 
-            -- Получаем содержимое текущего буфера
-            local start_row, start_col = start_pos[2] - 1, start_pos[3] - 1
-            local end_row, end_col = end_pos[2] - 1, end_pos[3]
+    #         -- Получаем содержимое текущего буфера
+    #         local start_row, start_col = start_pos[2] - 1, start_pos[3] - 1
+    #         local end_row, end_col = end_pos[2] - 1, end_pos[3]
 
-            -- Проверяем валидность позиций
-            if start_row > end_row or (start_row == end_row and start_col >= end_col) then
-              print("Неверное выделение")
-              return
-            end
+    #         -- Проверяем валидность позиций
+    #         if start_row > end_row or (start_row == end_row and start_col >= end_col) then
+    #           print("Неверное выделение")
+    #           return
+    #         end
 
-            local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
-            local new_lines = {}
-            for _, line in ipairs(lines) do
-              table.insert(new_lines, line)
-            end
+    #         local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+    #         local new_lines = {}
+    #         for _, line in ipairs(lines) do
+    #           table.insert(new_lines, line)
+    #         end
 
-            function analyze_string(input)
-                local function process_string(str)
-                    -- Удаляем все символы, кроме букв, цифр и дефисов
-                    local clean_str = str:gsub("[^%w-]", "")
-                    -- Разделяем строку по дефисам
-                    local parts = {}
-                    for part in clean_str:gmatch("[^-]+") do
-                        local pattern = ""
-                        if part:match("^%d+$") then
-                            pattern = "[0-9]"
-                        elseif part:match("^[a-f]+$") then
-                            pattern = "[a-f]"
-                        elseif part:match("^[A-F]+$") then
-                            pattern = "[A-F]"
-                        elseif part:match("^[a-z]+$") then
-                            pattern = "[a-z]"
-                        elseif part:match("^[A-Z]+$") then
-                            pattern = "[A-Z]"
-                        elseif part:match("^[A-Za-z]+$") then
-                            pattern = "[A-Za-z]"
-                        elseif part:match("^[0-9A-F]+$") then
-                            pattern = "[0-9A-F]"
-                        elseif part:match("^[0-9a-f]+$") then
-                            pattern = "[0-9a-f]"
-                        elseif part:match("^[0-9A-Z]+$") then
-                            pattern = "[0-9A-Z]"
-                        elseif part:match("^[0-9a-z]+$") then
-                            pattern = "[0-9a-z]"
-                        else
-                            pattern = "[0-9A-Za-z]"
-                        end
-                        pattern = pattern .. "{" .. #part .. "}"
-                        table.insert(parts, pattern)
-                    end
-                    -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
-                    if #parts == 0 then
-                        return 'stringTools.NewRandomStringFromPattern("")'
-                    end
-                    -- Собираем финальную строку
-                    local pattern = table.concat(parts, "-")
-                    return 'stringTools.NewRandomStringFromPattern("' .. pattern .. '")'
-                end
+    #         function analyze_string(input, use_full_format)
+    #             local function process_string(str, use_full_format)
+    #                 -- Удаляем все символы, кроме букв, цифр и дефисов
+    #                 local clean_str = str:gsub("[^%w-]", "")
+    #                 -- Разделяем строку по дефисам
+    #                 local parts = {}
+    #                 for part in clean_str:gmatch("[^-]+") do
+    #                     local pattern = ""
+    #                     if part:match("^%d+$") then
+    #                         pattern = "[0-9]"
+    #                     elseif part:match("^[a-f]+$") then
+    #                         pattern = "[a-f]"
+    #                     elseif part:match("^[A-F]+$") then
+    #                         pattern = "[A-F]"
+    #                     elseif part:match("^[a-z]+$") then
+    #                         pattern = "[a-z]"
+    #                     elseif part:match("^[A-Z]+$") then
+    #                         pattern = "[A-Z]"
+    #                     elseif part:match("^[A-Za-z]+$") then
+    #                         pattern = "[A-Za-z]"
+    #                     elseif part:match("^[0-9A-F]+$") then
+    #                         pattern = "[0-9A-F]"
+    #                     elseif part:match("^[0-9a-f]+$") then
+    #                         pattern = "[0-9a-f]"
+    #                     elseif part:match("^[0-9A-Z]+$") then
+    #                         pattern = "[0-9A-Z]"
+    #                     elseif part:match("^[0-9a-z]+$") then
+    #                         pattern = "[0-9a-z]"
+    #                     else
+    #                         pattern = "[0-9A-Za-z]"
+    #                     end
+    #                     pattern = pattern .. "{" .. #part .. "}"
+    #                     table.insert(parts, pattern)
+    #                 end
+    #                 -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
+    #                 if #parts == 0 then
+    #                     return use_full_format and 'stringTools.NewRandomStringFromPattern("")' or '""'
+    #                 end
+    #                 -- Собираем финальную строку
+    #                 local pattern = table.concat(parts, "-")
+    #                 return use_full_format and ('stringTools.NewRandomStringFromPattern("' .. pattern .. '")') or ('"' .. pattern .. '"')
+    #             end
 
-                if type(input) == "table" then
-                    -- Если вход - таблица, обрабатываем каждый элемент
-                    local results = {}
-                    for _, item in ipairs(input) do
-                        table.insert(results, process_string(tostring(item)))
-                    end
-                    return results
-                elseif type(input) == "string" then
-                    -- Если вход - строка, обрабатываем её
-                    return {process_string(input)}
-                else
-                    -- Если тип входа неизвестен, возвращаем пустой паттерн
-                    return {'stringTools.NewRandomStringFromPattern("")'}
-                end
-            end
-            local ok, err = pcall(function()
-              vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_string(new_lines))
-            end)
+    #             if type(input) == "table" then
+    #                 -- Если вход - таблица, обрабатываем каждый элемент
+    #                 local results = {}
+    #                 for _, item in ipairs(input) do
+    #                     table.insert(results, process_string(tostring(item), use_full_format))
+    #                 end
+    #                 return results
+    #             elseif type(input) == "string" then
+    #                 -- Если вход - строка, обрабатываем её
+    #                 return {process_string(input, use_full_format)}
+    #             else
+    #                 -- Если тип входа неизвестен, возвращаем пустой паттерн
+    #                 return use_full_format and {'stringTools.NewRandomStringFromPattern("")'} or {'""'}
+    #             end
+    #         end
 
-            if not ok then
-              print("Ошибка при замене текста: " .. tostring(err))
-            else
-              print("Текст успешно заменен на 'Hello World'")
-            end
-          end, 10) -- 10 мс задержки
-        end
-      '';
-      desc = "Преобразует выделенную строку в шаблон для генерации случайных строк";
-    };
+    #         -- Определяем, нужно ли использовать полный формат
+    #         local use_full_format = args ~= "pattern_only"
+
+    #         local ok, err = pcall(function()
+    #           vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_string(new_lines, use_full_format))
+    #         end)
+
+    #         if not ok then
+    #           print("Ошибка при замене текста: " .. tostring(err))
+    #         else
+    #           print("Текст успешно заменен на паттерн" .. (use_full_format and " с полным форматом" or ""))
+    #         end
+    #       end, 10) -- 10 мс задержки
+    #     end
+    #   '';
+    #   desc = "Преобразует выделенную строку в шаблон для генерации случайных строк";
+    # };
     DeleteEmptyLines = {
       command.__raw = ''
         function()
@@ -288,6 +292,125 @@
       desc = "Копировать go github.com/*/*..";
     };
   };
+
+  # Определение функции string_to_pattern
+  extraConfigLua = ''
+    local function string_to_pattern(use_full_format)
+      -- Получаем текущий режим
+      local mode = vim.api.nvim_get_mode().mode
+
+      -- Если не в визуальном режиме, выходим
+      if mode:sub(1,1) ~= 'v' then
+        print("Пожалуйста, выделите текст перед использованием этой функции")
+        return
+      end
+
+      -- Переходим в нормальный режим для обновления меток
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', true)
+
+      -- Добавляем небольшую задержку для обеспечения обновления меток
+      vim.defer_fn(function()
+        -- Получаем текущие позиции курсора
+        local start_pos = vim.fn.getpos("'<")
+        local end_pos = vim.fn.getpos("'>")
+
+        -- Получаем содержимое текущего буфера
+        local start_row, start_col = start_pos[2] - 1, start_pos[3] - 1
+        local end_row, end_col = end_pos[2] - 1, end_pos[3]
+
+        -- Проверяем валидность позиций
+        if start_row > end_row or (start_row == end_row and start_col >= end_col) then
+          print("Неверное выделение")
+          return
+        end
+
+        local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+        local new_lines = {}
+        for _, line in ipairs(lines) do
+          table.insert(new_lines, line)
+        end
+
+        local function analyze_string(input, use_full_format)
+            local function process_string(str, use_full_format)
+                -- Удаляем все символы, кроме букв, цифр и дефисов
+                local clean_str = str:gsub("[^%w-]", "")
+                -- Разделяем строку по дефисам
+                local parts = {}
+                for part in clean_str:gmatch("[^-]+") do
+                    local pattern = ""
+                    if part:match("^%d+$") then
+                        pattern = "[0-9]"
+                    elseif part:match("^[a-f]+$") then
+                        pattern = "[a-f]"
+                    elseif part:match("^[A-F]+$") then
+                        pattern = "[A-F]"
+                    elseif part:match("^[a-z]+$") then
+                        pattern = "[a-z]"
+                    elseif part:match("^[A-Z]+$") then
+                        pattern = "[A-Z]"
+                    elseif part:match("^[A-Za-z]+$") then
+                        pattern = "[A-Za-z]"
+                    elseif part:match("^[0-9A-F]+$") then
+                        pattern = "[0-9A-F]"
+                    elseif part:match("^[0-9a-f]+$") then
+                        pattern = "[0-9a-f]"
+                    elseif part:match("^[0-9A-Z]+$") then
+                        pattern = "[0-9A-Z]"
+                    elseif part:match("^[0-9a-z]+$") then
+                        pattern = "[0-9a-z]"
+                    else
+                        pattern = "[0-9A-Za-z]"
+                    end
+                    pattern = pattern .. "{" .. #part .. "}"
+                    table.insert(parts, pattern)
+                end
+                -- Если нет частей (например, строка была пустой), возвращаем пустой паттерн
+                if #parts == 0 then
+                    return use_full_format and 'stringTools.NewRandomStringFromPattern("")' or '""'
+                end
+                -- Собираем финальную строку
+                local pattern = table.concat(parts, "-")
+                return use_full_format and ('stringTools.NewRandomStringFromPattern("' .. pattern .. '")') or (pattern)
+            end
+
+            if type(input) == "table" then
+                -- Если вход - таблица, обрабатываем каждый элемент
+                local results = {}
+                for _, item in ipairs(input) do
+                    table.insert(results, process_string(tostring(item), use_full_format))
+                end
+                return results
+            elseif type(input) == "string" then
+                -- Если вход - строка, обрабатываем её
+                return {process_string(input, use_full_format)}
+            else
+                -- Если тип входа неизвестен, возвращаем пустой паттерн
+                return use_full_format and {'stringTools.NewRandomStringFromPattern("")'} or {'""'}
+            end
+        end
+
+        local ok, err = pcall(function()
+          vim.api.nvim_buf_set_text(0, start_row, start_col, end_row, end_col, analyze_string(new_lines, use_full_format))
+        end)
+
+        if not ok then
+          print("Ошибка при замене текста: " .. tostring(err))
+        else
+          print("Текст успешно заменен на паттерн" .. (use_full_format and " с полным форматом" or ""))
+        end
+      end, 10) -- 10 мс задержки
+    end
+
+    -- Регистрация команд
+    vim.api.nvim_create_user_command('StringToPatternFull', function()
+      string_to_pattern(true)
+    end, {})
+
+    vim.api.nvim_create_user_command('StringToPatternOnly', function()
+      string_to_pattern(false)
+    end, {})
+  '';
+
   keymaps = [
     {
       mode = "n";
@@ -379,8 +502,16 @@
     }
     {
       mode = ["n" "v"];
+      key = "<leader>mO";
+      action = "<cmd>StringToPatternFull<cr>";
+      options = {
+        desc = "stringTools.NewRandomStringFromPattern...";
+      };
+    }
+    {
+      mode = ["n" "v"];
       key = "<leader>mP";
-      action = "<cmd>StringToPattern<cr>";
+      action = "<cmd>StringToPatternOnly<cr>";
       options = {
         desc = "9a522cb9-a2ab -> '..[0-9a-f]{8}-[0-9a-f]{4}..'";
       };
