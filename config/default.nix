@@ -11,6 +11,7 @@ in {
     ./autocommands.nix
     ./user-commands.nix
     ./keys.nix
+    ./plugins/diff.nix
 
     # ./plugins/cmp-go-pkgs.nix
     ./plugins-more.nix
