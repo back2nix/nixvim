@@ -166,6 +166,7 @@ in {
       comment.enable = true;
       # comment-nvim.enable = true;
       commentary.enable = true;
+      # https://github.com/sindrets/diffview.nvim
       diffview = {
         enable = true;
         diffBinaries = true;

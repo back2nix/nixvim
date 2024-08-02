@@ -1,16 +1,20 @@
 {
   extraConfigVim = ''
     if &diff
-      colorscheme torte
+      colorscheme desert
     endif
+  '';
+
+  extraConfigLuaPost = ''
+    vim.opt.diffopt:append('internal,algorithm:patience,indent-heuristic')
   '';
 
   # Встроенные схемы:
   # default
   # blue
   # darkblue
-  # delek +
-  # desert
+  # delek
+  # desert +
   # elflord
   # evening
   # industry
@@ -22,7 +26,7 @@
   # ron
   # shine
   # slate +
-  # torte +
+  # torte ++
   # zellner
 
   # Популярные схемы сообщества:
