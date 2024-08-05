@@ -226,6 +226,7 @@ in {
       notify.enable = true;
       sniprun.enable = true;
       # https://github.com/kylechui/nvim-surround
+      # https://github.com/tpope/vim-surround
       surround.enable = true;
       hop = {
         enable = true;
