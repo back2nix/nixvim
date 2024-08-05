@@ -225,7 +225,7 @@ in {
 
       notify.enable = true;
       sniprun.enable = true;
-      # https://github.com/AndrewRadev/splitjoin.vim
+      # https://github.com/kylechui/nvim-surround
       surround.enable = true;
       hop = {
         enable = true;
