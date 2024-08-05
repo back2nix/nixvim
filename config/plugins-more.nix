@@ -9,7 +9,7 @@
 in {
   config = {
     plugins = {
-      # nvim-ufo = {
+      # nvim-ufo = { # slit join
       #   enable = true;
       # };
       # git-worktree = {
@@ -225,6 +225,7 @@ in {
 
       notify.enable = true;
       sniprun.enable = true;
+      # https://github.com/AndrewRadev/splitjoin.vim
       surround.enable = true;
       hop = {
         enable = true;

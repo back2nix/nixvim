@@ -66,6 +66,7 @@ in {
       vim-dadbod-completion
       dressing-nvim
       jupytext-nvim
+      treesj # split join
     ];
     extraPackages = with pkgs-master; [
       fd

@@ -429,7 +429,7 @@
         };
       }
       {
-        key = "gt";
+        key = "gT";
         action.__raw = ''function() require("telescope.builtin").lsp_type_definitions { reuse_win = true } end'';
         options = {
           desc = "Go to type definition";
@@ -840,6 +840,45 @@
         '';
         options = {
           desc = "Evaluate expression";
+          silent = true;
+        };
+      }
+      {
+        mode = "n";
+        key = "<leader>d?";
+        action.__raw = ''
+          function()
+          vim.ui.input({ prompt = "Expression: " }, function(expr)
+          if expr then require("dapui").eval(expr, { enter = true }) end
+          end)
+          end
+        '';
+        options = {
+          desc = "Evaluate expression";
+          silent = true;
+        };
+      }
+      {
+        key = "gt";
+        action = ":lua require('treesj').toggle()<CR>";
+        options = {
+          desc = "TreeSJ: Toggle split/join";
+          silent = true;
+        };
+      }
+      {
+        key = "gs";
+        action = ":lua require('treesj').split()<CR>";
+        options = {
+          desc = "TreeSJ: Split";
+          silent = true;
+        };
+      }
+      {
+        key = "gj";
+        action = ":lua require('treesj').join()<CR>";
+        options = {
+          desc = "TreeSJ: Join";
           silent = true;
         };
       }
