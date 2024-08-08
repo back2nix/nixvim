@@ -46,6 +46,14 @@ local function is_cursor_in_import_context()
 end
 
 source.complete = function(self, params, callback)
+	-- Проверяем, является ли текущий файл Go файлом
+	local current_buf = vim.api.nvim_get_current_buf()
+	local buf_name = vim.api.nvim_buf_get_name(current_buf)
+	if not buf_name:match("%.go$") then
+		callback({ items = {}, isIncomplete = false })
+		return
+	end
+
 	-- Проверяем, находится ли курсор в контексте импорта
 	if not is_cursor_in_import_context() then
 		callback({ items = {}, isIncomplete = false })
