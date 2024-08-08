@@ -1,2 +1,7 @@
 result
 test/
+config/h1
+config/h2
+h1
+h2
+request.http

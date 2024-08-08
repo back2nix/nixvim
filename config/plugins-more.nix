@@ -6,8 +6,12 @@
   lib,
   ...
 }: let
+  # myplugin = pkgs.callPackage ./plugins/example_golang_plugin/default.nix {};
 in {
   config = {
+    # extraPlugins = [
+    #   myplugin
+    # ];
     plugins = {
       # nvim-ufo = { # slit join
       #   enable = true;
