@@ -87,15 +87,15 @@ source.complete = function(self, params, callback)
 	callback({ items = items, isIncomplete = false })
 end
 
-cmp.setup({
-	sources = {
-		{
-			name = "go_import",
-			keyword_length = 1,
-			keyword_pattern = ".",
-			priority = 10,
-		},
-	},
-})
+-- Регистрируем новый источник без изменения существующей конфигурации
+cmp.register_source("go_import", source.new())
 
-require("cmp").register_source("go_import", source.new())
+-- Добавляем новый источник к существующим источникам
+local cmp_config = cmp.get_config()
+table.insert(cmp_config.sources, {
+	name = "go_import",
+	keyword_length = 1,
+	keyword_pattern = ".",
+	priority = 10,
+})
+cmp.setup(cmp_config)
