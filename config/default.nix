@@ -34,6 +34,7 @@ in {
     # ./plugins/utils/hardtime.nix
     ./plugins/utils/gitlinker.nix
     ./plugins/example_golang_plugin/plugin.nix
+    ./plugins/goimportcomplete/plugin.nix
 
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix
