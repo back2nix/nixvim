@@ -1,5 +1,5 @@
 {pkgs, ...}: let
-  helloremote = pkgs.callPackage ./example_golang_plugin/default.nix {};
+  helloremote = pkgs.callPackage ./default.nix {};
 
   helloremote-nvim = pkgs.vimUtils.buildVimPlugin {
     pname = helloremote.pname;
