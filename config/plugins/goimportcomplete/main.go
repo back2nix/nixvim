@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/neovim/go-client/nvim"
 )
@@ -56,7 +57,22 @@ func walkDir(dir, rootDir, moduleName string) (map[string]struct{}, error) {
 	return imports, err
 }
 
+var (
+	cache     []string
+	cacheTime time.Time
+	cacheMu   sync.Mutex
+)
+
 func completeImport(v *nvim.Nvim, args []string) ([]string, error) {
+	cacheMu.Lock()
+	defer cacheMu.Unlock()
+
+	// Check if cache is still valid
+	if time.Since(cacheTime) < 60*time.Second && cache != nil {
+		return cache, nil
+	}
+
+	// If cache is invalid or empty, compute the result
 	wd, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -80,6 +96,10 @@ func completeImport(v *nvim.Nvim, args []string) ([]string, error) {
 
 	// Sort the imports
 	sort.Strings(imports)
+
+	// Update cache
+	cache = imports
+	cacheTime = time.Now()
 
 	return imports, nil
 }
