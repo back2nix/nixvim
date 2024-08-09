@@ -11,7 +11,7 @@ buildGoModule rec {
   # vendorSha256 = lib.fakeSha256;
 
   # vendorHash = lib.fakeHash;
-  vendorHash = "sha256-4rdEyUWBn7z+939n5NQ9BmC/nI60zZUc2TtPXX3Fuis=";
+  vendorHash = "sha256-/Bl4G5STa5lnNntZnMmt+BfES+N7ZYAwC9tzpuqUKcc=";
 
   buildPhase = ''
     go build -mod=vendor -o ${pname} main.go
