@@ -19,6 +19,19 @@ var (
 	importPathsMutex sync.RWMutex
 )
 
+func findProjectRoot(dir string) (string, error) {
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("go.mod not found in any parent directory")
+		}
+		dir = parent
+	}
+}
+
 func getModuleName(dir string) (string, error) {
 	modFile, err := os.Open(filepath.Join(dir, "go.mod"))
 	if err != nil {
@@ -48,7 +61,7 @@ func walkDir(dir, rootDir, moduleName string) (map[string]struct{}, error) {
 				return err
 			}
 			importPath := fmt.Sprintf(`"%s"`, filepath.Join(moduleName, relPath))
-			if importPath != moduleName { // Exclude the root module itself
+			if importPath != fmt.Sprintf(`"%s"`, moduleName) { // Exclude the root module itself
 				imports[importPath] = struct{}{}
 			}
 		}
@@ -78,12 +91,17 @@ func completeImport(v *nvim.Nvim, args []string) ([]string, error) {
 		return nil, err
 	}
 
-	moduleName, err := getModuleName(wd)
+	projectRoot, err := findProjectRoot(wd)
 	if err != nil {
 		return nil, err
 	}
 
-	importsMap, err := walkDir(wd, wd, moduleName)
+	moduleName, err := getModuleName(projectRoot)
+	if err != nil {
+		return nil, err
+	}
+
+	importsMap, err := walkDir(projectRoot, projectRoot, moduleName)
 	if err != nil {
 		return nil, err
 	}
