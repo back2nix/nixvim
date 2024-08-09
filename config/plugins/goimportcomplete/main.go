@@ -82,7 +82,7 @@ func completeImport(v *nvim.Nvim, args []string) ([]string, error) {
 
 	// Check if cache is still valid
 	if time.Since(cacheTime) < 60*time.Second && cache != nil {
-		return cache, nil
+		return filterByPrefix(cache, args), nil
 	}
 
 	// If cache is invalid or empty, compute the result
@@ -119,7 +119,24 @@ func completeImport(v *nvim.Nvim, args []string) ([]string, error) {
 	cache = imports
 	cacheTime = time.Now()
 
-	return imports, nil
+	return filterByPrefix(cache, args), nil
+}
+
+func filterByPrefix(imports []string, args []string) []string {
+	if len(args) == 0 || args[0] == "" {
+		return imports
+	}
+
+	prefix := fmt.Sprintf(`"%s`, args[0])
+	filtered := make([]string, 0)
+
+	for _, imp := range imports {
+		if strings.HasPrefix(imp, prefix) {
+			filtered = append(filtered, imp)
+		}
+	}
+
+	return filtered
 }
 
 func main() {

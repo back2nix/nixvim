@@ -60,7 +60,14 @@ source.complete = function(self, params, callback)
 		return
 	end
 
-	local current_word = params.context.cursor_before_line:match("\\k*$")
+	local current_word = params.context.cursor_before_line:match("([%w_]+)$") or ""
+	print("Debug: current_word = '" .. current_word .. "'")
+
+	-- Проверяем, не пустое ли значение current_word
+	if current_word == "" then
+		callback({ items = {}, isIncomplete = false })
+		return
+	end
 
 	-- Используем rpcrequest для получения автодополнений
 	-- Передаем аргумент в виде таблицы
