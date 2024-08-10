@@ -36,6 +36,7 @@ in {
     ./plugins/example_golang_plugin/plugin.nix
     ./plugins/goimportcomplete/plugin.nix
     ./plugins/go-import-plugin-nvim/plugin.nix
+    ./plugins/golang_validator_plugin/plugin.nix
 
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix
