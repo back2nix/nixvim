@@ -6,7 +6,7 @@ local function ensure_job()
 	if chan then
 		return chan
 	end
-	chan = vim.fn.jobstart({ "goimportcomplete" }, { rpc = true })
+	chan = vim.fn.jobstart({ "go_import_complete" }, { rpc = true })
 	return chan
 end
 

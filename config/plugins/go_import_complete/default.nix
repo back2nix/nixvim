@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "goimportcomplete";
+  pname = "go_import_complete";
   version = "0.1.0";
 
   src = ./.;
