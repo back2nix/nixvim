@@ -106,15 +106,20 @@ func findCodeBoundaries(lines [][]byte, cursorLine int) (int, int, string) {
 	startLine := -1
 	endLine := -1
 	codeType := ""
-	braceCount := 0
 
 	// Search backwards for the start of the code block
 	for i := cursorLine; i >= 0; i-- {
 		line := string(lines[i])
 		trimmedLine := strings.TrimSpace(line)
+
 		if strings.HasPrefix(trimmedLine, "func ") {
+			if strings.Contains(trimmedLine, ")") && !strings.HasSuffix(trimmedLine, ")") {
+				// This is likely a method
+				codeType = "method"
+			} else {
+				codeType = "function"
+			}
 			startLine = i
-			codeType = "function"
 			break
 		} else if strings.HasPrefix(trimmedLine, "type ") && strings.Contains(trimmedLine, "struct") {
 			startLine = i
@@ -136,16 +141,35 @@ func findCodeBoundaries(lines [][]byte, cursorLine int) (int, int, string) {
 	}
 
 	// Search forwards for the end of the code block
+	braceCount := 0
 	for i := startLine; i < len(lines); i++ {
 		line := string(lines[i])
-		braceCount += strings.Count(line, "{") - strings.Count(line, "}")
-		if braceCount == 0 {
-			if codeType == "variable" {
-				if strings.TrimSpace(line) == ")" || !strings.Contains(line, ",") {
+		trimmedLine := strings.TrimSpace(line)
+
+		if codeType == "struct" || codeType == "interface" {
+			if strings.Contains(line, "{") {
+				braceCount++
+			}
+			if strings.Contains(line, "}") {
+				braceCount--
+				if braceCount == 0 {
 					endLine = i
 					break
 				}
-			} else if strings.TrimSpace(line) == "}" {
+			}
+		} else if codeType == "function" || codeType == "method" {
+			if strings.Contains(line, "{") {
+				braceCount++
+			}
+			if strings.Contains(line, "}") {
+				braceCount--
+				if braceCount == 0 {
+					endLine = i
+					break
+				}
+			}
+		} else if codeType == "variable" {
+			if !strings.HasSuffix(trimmedLine, ",") && (strings.HasSuffix(trimmedLine, ")") || !strings.Contains(line, ",")) {
 				endLine = i
 				break
 			}
