@@ -15,6 +15,3 @@ vim.api.nvim_create_user_command("MoveFunction", function()
 		end
 	end)
 end, {})
-
--- Set up key mapping
--- vim.api.nvim_set_keymap("n", "<leader>mF", ":MoveFunction<CR>", { noremap = true, silent = true })

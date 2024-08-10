@@ -16,10 +16,26 @@ func moveFunction(v *nvim.Nvim, args []string) error {
 	}
 	destPath := args[0]
 
-	// Get current buffer
+	// Get current buffer and its file path
 	buffer, err := v.CurrentBuffer()
 	if err != nil {
 		return fmt.Errorf("Failed to get current buffer: %v", err)
+	}
+	currentFilePath, err := v.BufferName(buffer)
+	if err != nil {
+		return fmt.Errorf("Failed to get current file path: %v", err)
+	}
+
+	// Find project root
+	projectRoot, err := findProjectRoot(currentFilePath)
+	if err != nil {
+		return fmt.Errorf("Failed to find project root: %v", err)
+	}
+
+	// Process and validate the destination path
+	fullDestPath, err := processDestinationPath(destPath, currentFilePath, projectRoot)
+	if err != nil {
+		return fmt.Errorf("Invalid destination path: %v", err)
 	}
 
 	// Get cursor position
@@ -49,19 +65,32 @@ func moveFunction(v *nvim.Nvim, args []string) error {
 	functionText := strings.Join(bytesSliceToStringSlice(functionLines), "\n")
 
 	// Ensure destination directory exists
-	destDir := filepath.Dir(destPath)
+	destDir := filepath.Dir(fullDestPath)
 	if err := os.MkdirAll(destDir, 0o755); err != nil {
 		return fmt.Errorf("Failed to create destination directory: %v", err)
 	}
 
-	// Append function to destination file
-	f, err := os.OpenFile(destPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	// Check if the destination file is a new .go file
+	isNewGoFile := !fileExists(fullDestPath) && strings.HasSuffix(fullDestPath, ".go")
+
+	// Open the destination file
+	f, err := os.OpenFile(fullDestPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		return fmt.Errorf("Failed to open destination file: %v", err)
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n" + functionText + "\n"); err != nil {
+	// If it's a new .go file, add package declaration
+	if isNewGoFile {
+		packageName := filepath.Base(filepath.Dir(fullDestPath))
+		packageDeclaration := fmt.Sprintf("package %s\n\n", packageName)
+		if _, err := f.WriteString(packageDeclaration); err != nil {
+			return fmt.Errorf("Failed to write package declaration: %v", err)
+		}
+	}
+
+	// Write the function to the file
+	if _, err := f.WriteString(functionText + "\n"); err != nil {
 		return fmt.Errorf("Failed to write function to destination file: %v", err)
 	}
 
@@ -70,7 +99,43 @@ func moveFunction(v *nvim.Nvim, args []string) error {
 		return fmt.Errorf("Failed to remove function from source file: %v", err)
 	}
 
-	return v.WriteOut(fmt.Sprintf("Function moved to %s\n", destPath))
+	return v.WriteOut(fmt.Sprintf("Function moved to %s\n", fullDestPath))
+}
+
+func findProjectRoot(startPath string) (string, error) {
+	dir := filepath.Dir(startPath)
+	for dir != "/" {
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir, nil
+		}
+		dir = filepath.Dir(dir)
+	}
+	return "", fmt.Errorf("Project root not found")
+}
+
+func processDestinationPath(destPath, currentFilePath, projectRoot string) (string, error) {
+	var fullPath string
+
+	if filepath.IsAbs(destPath) {
+		// For absolute paths, ensure they start with the project root
+		fullPath = filepath.Join(projectRoot, destPath)
+	} else if strings.HasPrefix(destPath, "/") {
+		// Paths starting with "/" are relative to the project root
+		fullPath = filepath.Join(projectRoot, destPath)
+	} else {
+		// Other paths are relative to the current file
+		fullPath = filepath.Join(filepath.Dir(currentFilePath), destPath)
+	}
+
+	// Normalize the path
+	fullPath = filepath.Clean(fullPath)
+
+	// Ensure the path is within the project root
+	if !strings.HasPrefix(fullPath, projectRoot) {
+		return "", fmt.Errorf("Destination path is outside of the project root")
+	}
+
+	return fullPath, nil
 }
 
 func findFunctionBoundaries(lines [][]byte, cursorLine int) (int, int) {
@@ -109,6 +174,11 @@ func bytesSliceToStringSlice(bytesSlice [][]byte) []string {
 		result[i] = string(b)
 	}
 	return result
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return !os.IsNotExist(err)
 }
 
 func main() {
