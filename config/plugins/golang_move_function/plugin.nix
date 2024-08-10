@@ -31,5 +31,14 @@ in {
         silent = true;
       };
     }
+    {
+      mode = ["n"];
+      key = "<leader>r";
+      action = ":RepeatMoveCode<CR>";
+      options = {
+        desc = "Repeat move";
+        silent = true;
+      };
+    }
   ];
 }

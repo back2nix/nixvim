@@ -6,15 +6,29 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/neovim/go-client/nvim"
 )
 
+var (
+	lastDestPath string
+	pathMutex    sync.RWMutex
+)
+
 func moveCode(v *nvim.Nvim, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("Expected 1 argument (destination path), got %d", len(args))
+	var destPath string
+	if len(args) == 0 || args[0] == "" {
+		// Use last destination path if no new path provided
+		pathMutex.RLock()
+		destPath = lastDestPath
+		pathMutex.RUnlock()
+		if destPath == "" {
+			return fmt.Errorf("No previous destination path available")
+		}
+	} else {
+		destPath = args[0]
 	}
-	destPath := args[0]
 
 	// Get current buffer and its file path
 	buffer, err := v.CurrentBuffer()
@@ -37,6 +51,11 @@ func moveCode(v *nvim.Nvim, args []string) error {
 	if err != nil {
 		return fmt.Errorf("Invalid destination path: %v", err)
 	}
+
+	// Update last destination path
+	pathMutex.Lock()
+	lastDestPath = fullDestPath
+	pathMutex.Unlock()
 
 	// Get cursor position
 	window, err := v.CurrentWindow()
@@ -258,6 +277,12 @@ func fileExists(filename string) bool {
 	return !os.IsNotExist(err)
 }
 
+func getLastDestPath(v *nvim.Nvim, args []string) (string, error) {
+	pathMutex.RLock()
+	defer pathMutex.RUnlock()
+	return lastDestPath, nil
+}
+
 func main() {
 	log.SetFlags(0)
 	stdout := os.Stdout
@@ -269,6 +294,7 @@ func main() {
 	}
 
 	v.RegisterHandler("moveCode", moveCode)
+	v.RegisterHandler("getLastDestPath", getLastDestPath)
 
 	if err := v.Serve(); err != nil {
 		log.Fatal(err)
