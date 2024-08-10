@@ -120,16 +120,34 @@ func addValidatorTag(field *ast.Field) {
 	}
 
 	// Add or update validator tag based on field type
-	switch field.Type.(type) {
+	switch t := field.Type.(type) {
 	case *ast.Ident:
-		if ident, ok := field.Type.(*ast.Ident); ok {
-			switch ident.Name {
-			case "string":
-				tags["validate"] = `"required"`
-			case "int", "int64", "float64":
+		switch t.Name {
+		case "string":
+			tags["validate"] = `"required"`
+		case "int", "int64":
+			tags["validate"] = `"required,gte=0"`
+		case "float64":
+			tags["validate"] = `"required,numeric"`
+		}
+	case *ast.SelectorExpr:
+		if ident, ok := t.X.(*ast.Ident); ok {
+			if ident.Name == "types" && t.Sel.Name == "Float" {
 				tags["validate"] = `"required,gte=0"`
 			}
 		}
+	case *ast.ArrayType:
+		tags["validate"] = `"omitempty,dive,required"`
+	case *ast.StructType:
+		tags["validate"] = `"required"`
+	}
+
+	// Special cases based on field name
+	switch field.Names[0].Name {
+	case "URL":
+		tags["validate"] = `"uri"`
+	case "Name":
+		tags["validate"] = `"gt=0"`
 	}
 
 	// Reconstruct tag string
