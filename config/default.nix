@@ -39,6 +39,7 @@ in {
     ./plugins/golang_validator_plugin/plugin.nix
     ./plugins/golang_rename_import/plugin.nix
     ./plugins/golang_rename_alias_import/plugin.nix
+    ./plugins/golang_move_function/plugin.nix
 
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix
