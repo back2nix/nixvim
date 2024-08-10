@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -49,33 +50,111 @@ func renameImport(v *nvim.Nvim, args []string) (string, error) {
 		return "", fmt.Errorf("failed to get module name: %v", err)
 	}
 
-	// 1. Найти все Go файлы в проекте, включая корневую директорию
+	// 1. Анализ старого и нового пути импорта
+	oldRelPath := strings.TrimPrefix(oldImport, moduleName+"/")
+	newRelPath := strings.TrimPrefix(newImport, moduleName+"/")
+	oldPath := filepath.Join(projectRoot, oldRelPath)
+	newPath := filepath.Join(projectRoot, newRelPath)
+
+	// 2. Создание новой структуры директорий
+	if err := os.MkdirAll(filepath.Dir(newPath), 0o755); err != nil {
+		return "", fmt.Errorf("failed to create new directory structure: %v", err)
+	}
+
+	// 3. Перемещение файлов
+	if err := moveFiles(oldPath, newPath); err != nil {
+		return "", fmt.Errorf("failed to move files: %v", err)
+	}
+
+	// 4. Удаление пустых директорий
+	if err := removeEmptyDirs(oldPath); err != nil {
+		return "", fmt.Errorf("failed to remove empty directories: %v", err)
+	}
+
+	// 5. Обновление импортов и использования пакетов
 	goFiles, err := findAllGoFiles(projectRoot)
 	if err != nil {
 		return "", fmt.Errorf("failed to find Go files: %v", err)
 	}
 
-	// 2. Обновить импорты и использование пакета во всех файлах
 	for _, file := range goFiles {
 		if err := updateFileContent(file, oldImport, newImport); err != nil {
 			return "", fmt.Errorf("failed to update content in %s: %v", file, err)
 		}
 	}
 
-	// 3. Переименовать папку
-	oldPath := filepath.Join(projectRoot, strings.TrimPrefix(oldImport, moduleName+"/"))
-	newPath := filepath.Join(projectRoot, strings.TrimPrefix(newImport, moduleName+"/"))
-	if err := os.Rename(oldPath, newPath); err != nil {
-		return "", fmt.Errorf("failed to rename directory: %v", err)
-	}
-
-	// 4. Обновить объявления пакетов в переименованной папке
+	// 6. Обновление объявлений пакетов
 	newPackageName := filepath.Base(newPath)
 	if err := updatePackageDeclarations(newPath, newPackageName); err != nil {
 		return "", fmt.Errorf("failed to update package declarations: %v", err)
 	}
 
 	return "Import renamed successfully", nil
+}
+
+func moveFiles(oldPath, newPath string) error {
+	return filepath.Walk(oldPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(oldPath, path)
+		if err != nil {
+			return err
+		}
+
+		newFilePath := filepath.Join(newPath, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(newFilePath, info.Mode())
+		}
+
+		if err := os.MkdirAll(filepath.Dir(newFilePath), 0o755); err != nil {
+			return err
+		}
+
+		return os.Rename(path, newFilePath)
+	})
+}
+
+func removeEmptyDirs(dir string) error {
+	return filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			// Проверяем, пуста ли директория
+			empty, err := isDirEmpty(path)
+			if err != nil {
+				return err
+			}
+
+			if empty {
+				if err := os.Remove(path); err != nil {
+					return err
+				}
+				// Если директория удалена, пропускаем ее содержимое
+				return filepath.SkipDir
+			}
+		}
+
+		return nil
+	})
+}
+
+func isDirEmpty(dir string) (bool, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err
 }
 
 func findAllGoFiles(root string) ([]string, error) {
