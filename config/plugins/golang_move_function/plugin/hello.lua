@@ -8,10 +8,10 @@ local function ensure_job()
 	return chan
 end
 
-vim.api.nvim_create_user_command("MoveFunction", function()
+vim.api.nvim_create_user_command("MoveCode", function()
 	vim.ui.input({ prompt = "Enter destination path: " }, function(input)
 		if input then
-			vim.fn.rpcrequest(ensure_job(), "moveFunction", { input })
+			vim.fn.rpcrequest(ensure_job(), "moveCode", { input })
 		end
 	end)
 end, {})

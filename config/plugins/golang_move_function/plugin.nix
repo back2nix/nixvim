@@ -25,9 +25,9 @@ in {
     {
       mode = ["n"];
       key = "<leader>mF";
-      action = ":MoveFunction<CR>";
+      action = ":MoveCode<CR>";
       options = {
-        desc = "Move function";
+        desc = "Move code";
         silent = true;
       };
     }

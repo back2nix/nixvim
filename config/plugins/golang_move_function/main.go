@@ -10,7 +10,7 @@ import (
 	"github.com/neovim/go-client/nvim"
 )
 
-func moveFunction(v *nvim.Nvim, args []string) error {
+func moveCode(v *nvim.Nvim, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("Expected 1 argument (destination path), got %d", len(args))
 	}
@@ -54,15 +54,15 @@ func moveFunction(v *nvim.Nvim, args []string) error {
 		return fmt.Errorf("Failed to get buffer lines: %v", err)
 	}
 
-	// Find function boundaries
-	startLine, endLine := findFunctionBoundaries(lines, cursor[0]-1)
+	// Find code boundaries
+	startLine, endLine, codeType := findCodeBoundaries(lines, cursor[0]-1)
 	if startLine == -1 || endLine == -1 {
-		return fmt.Errorf("No function found at cursor position")
+		return fmt.Errorf("No movable code found at cursor position")
 	}
 
-	// Extract function text
-	functionLines := lines[startLine : endLine+1]
-	functionText := strings.Join(bytesSliceToStringSlice(functionLines), "\n")
+	// Extract code text
+	codeLines := lines[startLine : endLine+1]
+	codeText := strings.Join(bytesSliceToStringSlice(codeLines), "\n")
 
 	// Ensure destination directory exists
 	destDir := filepath.Dir(fullDestPath)
@@ -89,17 +89,70 @@ func moveFunction(v *nvim.Nvim, args []string) error {
 		}
 	}
 
-	// Write the function to the file
-	if _, err := f.WriteString(functionText + "\n"); err != nil {
-		return fmt.Errorf("Failed to write function to destination file: %v", err)
+	// Write the code to the file
+	if _, err := f.WriteString(codeText + "\n"); err != nil {
+		return fmt.Errorf("Failed to write code to destination file: %v", err)
 	}
 
-	// Remove function from source file
+	// Remove code from source file
 	if err := v.SetBufferLines(buffer, startLine, endLine+1, true, [][]byte{}); err != nil {
-		return fmt.Errorf("Failed to remove function from source file: %v", err)
+		return fmt.Errorf("Failed to remove code from source file: %v", err)
 	}
 
-	return v.WriteOut(fmt.Sprintf("Function moved to %s\n", fullDestPath))
+	return v.WriteOut(fmt.Sprintf("%s moved to %s\n", strings.Title(codeType), fullDestPath))
+}
+
+func findCodeBoundaries(lines [][]byte, cursorLine int) (int, int, string) {
+	startLine := -1
+	endLine := -1
+	codeType := ""
+	braceCount := 0
+
+	// Search backwards for the start of the code block
+	for i := cursorLine; i >= 0; i-- {
+		line := string(lines[i])
+		trimmedLine := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmedLine, "func ") {
+			startLine = i
+			codeType = "function"
+			break
+		} else if strings.HasPrefix(trimmedLine, "type ") && strings.Contains(trimmedLine, "struct") {
+			startLine = i
+			codeType = "struct"
+			break
+		} else if strings.HasPrefix(trimmedLine, "type ") && strings.Contains(trimmedLine, "interface") {
+			startLine = i
+			codeType = "interface"
+			break
+		} else if strings.HasPrefix(trimmedLine, "var ") || strings.HasPrefix(trimmedLine, "const ") {
+			startLine = i
+			codeType = "variable"
+			break
+		}
+	}
+
+	if startLine == -1 {
+		return -1, -1, ""
+	}
+
+	// Search forwards for the end of the code block
+	for i := startLine; i < len(lines); i++ {
+		line := string(lines[i])
+		braceCount += strings.Count(line, "{") - strings.Count(line, "}")
+		if braceCount == 0 {
+			if codeType == "variable" {
+				if strings.TrimSpace(line) == ")" || !strings.Contains(line, ",") {
+					endLine = i
+					break
+				}
+			} else if strings.TrimSpace(line) == "}" {
+				endLine = i
+				break
+			}
+		}
+	}
+
+	return startLine, endLine, codeType
 }
 
 func findProjectRoot(startPath string) (string, error) {
@@ -191,7 +244,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	v.RegisterHandler("moveFunction", moveFunction)
+	v.RegisterHandler("moveCode", moveCode)
 
 	if err := v.Serve(); err != nil {
 		log.Fatal(err)
