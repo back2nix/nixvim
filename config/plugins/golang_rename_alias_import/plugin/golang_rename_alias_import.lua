@@ -72,30 +72,7 @@ local function rename_import()
 
 	log("Found " .. kind .. ": " .. value)
 
-	if kind == "import" then
-		rename_full_import(value)
-	else
-		rename_alias(value)
-	end
-end
-
-function rename_full_import(current_import)
-	vim.ui.input({ prompt = "Enter the new import path: ", default = current_import }, function(new_import)
-		if not new_import or new_import == "" or new_import == current_import then
-			print("New import path must be different and non-empty")
-			return
-		end
-
-		local result, err =
-			vim.fn.rpcrequest(ensure_job(), "renameImport", { vim.fn.getcwd(), current_import, new_import })
-
-		if err then
-			print("Error renaming import: " .. tostring(err))
-		else
-			print(result)
-			vim.cmd("bufdo e")
-		end
-	end)
+	rename_alias(value)
 end
 
 function rename_alias(current_alias)
