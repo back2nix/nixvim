@@ -49,16 +49,16 @@ func renameImport(v *nvim.Nvim, args []string) (string, error) {
 		return "", fmt.Errorf("failed to get module name: %v", err)
 	}
 
-	// 1. Найти все Go файлы в проекте
-	goFiles, err := findGoFiles(projectRoot)
+	// 1. Найти все Go файлы в проекте, включая корневую директорию
+	goFiles, err := findAllGoFiles(projectRoot)
 	if err != nil {
 		return "", fmt.Errorf("failed to find Go files: %v", err)
 	}
 
-	// 2. Обновить импорты во всех файлах
+	// 2. Обновить импорты и использование пакета во всех файлах
 	for _, file := range goFiles {
-		if err := updateImportsInFile(file, oldImport, newImport); err != nil {
-			return "", fmt.Errorf("failed to update imports in %s: %v", file, err)
+		if err := updateFileContent(file, oldImport, newImport); err != nil {
+			return "", fmt.Errorf("failed to update content in %s: %v", file, err)
 		}
 	}
 
@@ -76,6 +76,70 @@ func renameImport(v *nvim.Nvim, args []string) (string, error) {
 	}
 
 	return "Import renamed successfully", nil
+}
+
+func findAllGoFiles(root string) ([]string, error) {
+	var files []string
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() && strings.HasSuffix(path, ".go") {
+			files = append(files, path)
+		}
+		return nil
+	})
+	return files, err
+}
+
+func updateFileContent(filePath, oldImport, newImport string) error {
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+	if err != nil {
+		return err
+	}
+
+	var importChanged bool
+	var oldPackageName, newPackageName string
+	var hasAlias bool
+
+	// Update imports and check for alias
+	for _, imp := range node.Imports {
+		if imp.Path != nil && imp.Path.Value == `"`+oldImport+`"` {
+			imp.Path.Value = `"` + newImport + `"`
+			importChanged = true
+			oldPackageName = filepath.Base(oldImport)
+			newPackageName = filepath.Base(newImport)
+			hasAlias = imp.Name != nil
+			break
+		}
+	}
+
+	// Update package usage if import was changed and there's no alias
+	if importChanged && !hasAlias {
+		ast.Inspect(node, func(n ast.Node) bool {
+			switch x := n.(type) {
+			case *ast.SelectorExpr:
+				if ident, ok := x.X.(*ast.Ident); ok {
+					if ident.Name == oldPackageName {
+						ident.Name = newPackageName
+					}
+				}
+			}
+			return true
+		})
+	}
+
+	// Write changes back to file if imports or usage were changed
+	if importChanged {
+		var buf bytes.Buffer
+		if err := format.Node(&buf, fset, node); err != nil {
+			return err
+		}
+		return ioutil.WriteFile(filePath, buf.Bytes(), 0o644)
+	}
+
+	return nil
 }
 
 // getModuleName читает имя модуля из go.mod файла
