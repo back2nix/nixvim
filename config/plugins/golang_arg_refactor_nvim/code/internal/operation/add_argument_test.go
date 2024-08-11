@@ -241,7 +241,7 @@ func (c *Calculator) Calculate(operation string, a, b int, z int) int {
 	case "complexAdd2":
 		result = c.complexOperationAdd2(a, b, func(x, y, z int) int { return x + y }, z)
 	default:
-		result = c.complexOperation(a, b, z, func(x, y, z int) int { return x + y })
+		result = c.complexOperation(a, b, func(x, y int) int { return x + y })
 	}
 	c.cache[key] = result
 	return result
@@ -263,8 +263,8 @@ func (c *Calculator) complexOperationAdd(a, b int, op func(int, int) int) int {
 	return op(a, b)
 }
 
-func (c *Calculator) complexOperation(a, b, z int, op func(int, int, int) int) int {
-	return op(a, b, z)
+func (c *Calculator) complexOperation(a, b, op func(int, int) int) int {
+	return op(a, b)
 }
 
 func main() {

@@ -17,6 +17,10 @@ func (m *ASTModifier) UpdateFunctionCalls() {
 }
 
 func (m *ASTModifier) updateCall(call *ast.CallExpr) {
+	if !m.isTargetFunctionCall(call) {
+		return
+	}
+
 	if m.shouldUpdateCall(call) {
 		if m.IsAdding {
 			for _, arg := range call.Args {
@@ -55,6 +59,16 @@ func (m *ASTModifier) updateCall(call *ast.CallExpr) {
 			m.updateFuncType(funcType.Type)
 		}
 	}
+}
+
+func (m *ASTModifier) isTargetFunctionCall(call *ast.CallExpr) bool {
+	switch fun := call.Fun.(type) {
+	case *ast.Ident:
+		return fun.Name == m.FuncName
+	case *ast.SelectorExpr:
+		return fun.Sel.Name == m.FuncName
+	}
+	return false
 }
 
 func (m *ASTModifier) shouldUpdateCall(call *ast.CallExpr) bool {
