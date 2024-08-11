@@ -30,25 +30,28 @@ func AddArgument(req AddArgumentRequest, files []string) error {
 			return fmt.Errorf("failed to parse file %s: %w", file, err)
 		}
 
+		modifier := ast.NewASTModifier(astFile, req.TargetFunc, req.ArgName, req.ArgType, true)
+
 		// Modify the target function
-		err = ast.ModifyFunction(astFile, req.TargetFunc, req.ArgName, req.ArgType, true)
+		err = modifier.ModifyFunction()
 		if err != nil {
 			return fmt.Errorf("failed to modify function %s: %w", req.TargetFunc, err)
 		}
 
 		// Update calls to all functions
-		ast.UpdateFunctionCalls(astFile, req.ArgName, req.ArgType, true)
+		modifier.UpdateFunctionCalls()
 
 		// Modify each function in the call chain
 		for _, caller := range chain.Callers {
-			err = ast.ModifyFunction(astFile, caller, req.ArgName, req.ArgType, true)
+			modifierCaller := ast.NewASTModifier(astFile, caller, req.ArgName, req.ArgType, true)
+			err = modifierCaller.ModifyFunction()
 			if err != nil {
 				return fmt.Errorf("failed to modify function %s: %w", caller, err)
 			}
 		}
 
 		// Write the modified AST back to the file
-		err = ast.WriteModifiedAST(astFile, file)
+		err = modifier.WriteModifiedAST(file)
 		if err != nil {
 			return fmt.Errorf("failed to write modified AST to file %s: %w", file, err)
 		}

@@ -9,144 +9,134 @@ import (
 	"io/ioutil"
 )
 
-func ModifyFunction(file *ast.File, funcName string, argName string, argType string, isAdding bool) error {
-	ast.Inspect(file, func(n ast.Node) bool {
+type ASTModifier struct {
+	File     *ast.File
+	FuncName string
+	ArgName  string
+	ArgType  string
+	IsAdding bool
+}
+
+func NewASTModifier(file *ast.File, funcName, argName, argType string, isAdding bool) *ASTModifier {
+	return &ASTModifier{
+		File:     file,
+		FuncName: funcName,
+		ArgName:  argName,
+		ArgType:  argType,
+		IsAdding: isAdding,
+	}
+}
+
+func (m *ASTModifier) ModifyFunction() error {
+	ast.Inspect(m.File, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.FuncDecl:
-			if isAdding {
-				addArgumentToFunction(node, argName, argType)
+			if m.IsAdding {
+				m.addArgumentToFunction(node)
 			} else {
-				removeArgumentFromFunction(node, argName)
+				m.removeArgumentFromFunction(node)
 			}
 		case *ast.FuncLit:
-			if isAdding {
-				addArgumentToFuncLit(node, argName, argType)
+			if m.IsAdding {
+				m.addArgumentToFuncLit(node)
 			} else {
-				removeArgumentFromFuncLit(node, argName)
+				m.removeArgumentFromFuncLit(node)
 			}
 		}
 		return true
 	})
 
-	UpdateFunctionCalls(file, argName, argType, isAdding)
+	m.UpdateFunctionCalls()
 	return nil
 }
 
-func updateFuncType(funcType *ast.FuncType, argName, argType string, isAdding bool) {
-	if isAdding {
-		// Проверяем, существует ли уже аргумент
+func (m *ASTModifier) updateFuncType(funcType *ast.FuncType) {
+	if m.IsAdding {
 		for _, field := range funcType.Params.List {
 			for _, name := range field.Names {
-				if name.Name == argName {
+				if name.Name == m.ArgName {
 					return // Аргумент уже существует
 				}
 			}
-			// Проверяем и обновляем вложенные функциональные типы
 			if fType, ok := field.Type.(*ast.FuncType); ok {
-				updateFuncType(fType, argName, argType, isAdding)
+				m.updateFuncType(fType)
 			}
 		}
 		newField := &ast.Field{
-			Names: []*ast.Ident{ast.NewIdent(argName)},
-			Type:  ast.NewIdent(argType),
+			Names: []*ast.Ident{ast.NewIdent(m.ArgName)},
+			Type:  ast.NewIdent(m.ArgType),
 		}
 		funcType.Params.List = append(funcType.Params.List, newField)
 	} else {
-		// Логика удаления остается прежней, но добавляем рекурсивное обновление
-		for _, field := range funcType.Params.List {
+		for i, field := range funcType.Params.List {
+			for j, name := range field.Names {
+				if name.Name == m.ArgName {
+					field.Names = append(field.Names[:j], field.Names[j+1:]...)
+					if len(field.Names) == 0 {
+						funcType.Params.List = append(funcType.Params.List[:i], funcType.Params.List[i+1:]...)
+					}
+					return
+				}
+			}
 			if fType, ok := field.Type.(*ast.FuncType); ok {
-				updateFuncType(fType, argName, argType, isAdding)
+				m.updateFuncType(fType)
 			}
 		}
 	}
 }
 
-func addArgumentToFunction(fn *ast.FuncDecl, argName, argType string) {
-	updateFuncType(fn.Type, argName, argType, true)
-	updateFunctionBody(fn.Body, argName, argType)
+func (m *ASTModifier) addArgumentToFunction(fn *ast.FuncDecl) {
+	m.updateFuncType(fn.Type)
+	m.updateFunctionBody(fn.Body)
 }
 
-func removeArgumentFromFunction(fn *ast.FuncDecl, argName string) {
-	for i, field := range fn.Type.Params.List {
-		for j, name := range field.Names {
-			if name.Name == argName {
-				field.Names = append(field.Names[:j], field.Names[j+1:]...)
-				if len(field.Names) == 0 {
-					fn.Type.Params.List = append(fn.Type.Params.List[:i], fn.Type.Params.List[i+1:]...)
-				}
-				return
-			}
-		}
-	}
+func (m *ASTModifier) removeArgumentFromFunction(fn *ast.FuncDecl) {
+	m.updateFuncType(fn.Type)
 }
 
-func addArgumentToFuncLit(fn *ast.FuncLit, argName, argType string) {
-	newField := &ast.Field{
-		Names: []*ast.Ident{ast.NewIdent(argName)},
-		Type:  ast.NewIdent(argType),
-	}
-
-	for _, field := range fn.Type.Params.List {
-		for _, name := range field.Names {
-			if name.Name == argName {
-				return // Argument already exists
-			}
-		}
-	}
-
-	fn.Type.Params.List = append(fn.Type.Params.List, newField)
-	updateFunctionBody(fn.Body, argName, argType)
+func (m *ASTModifier) addArgumentToFuncLit(fn *ast.FuncLit) {
+	m.updateFuncType(fn.Type)
+	m.updateFunctionBody(fn.Body)
 }
 
-func removeArgumentFromFuncLit(fn *ast.FuncLit, argName string) {
-	for i, field := range fn.Type.Params.List {
-		for j, name := range field.Names {
-			if name.Name == argName {
-				field.Names = append(field.Names[:j], field.Names[j+1:]...)
-				if len(field.Names) == 0 {
-					fn.Type.Params.List = append(fn.Type.Params.List[:i], fn.Type.Params.List[i+1:]...)
-				}
-				return
-			}
-		}
-	}
+func (m *ASTModifier) removeArgumentFromFuncLit(fn *ast.FuncLit) {
+	m.updateFuncType(fn.Type)
 }
 
-func updateFunctionBody(body *ast.BlockStmt, argName string, argType string) {
+func (m *ASTModifier) updateFunctionBody(body *ast.BlockStmt) {
 	ast.Inspect(body, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.CallExpr:
-			updateCall(node, argName, argType, true)
+			m.updateCall(node)
 		}
 		return true
 	})
 }
 
-func UpdateFunctionCalls(file *ast.File, argName string, argType string, isAdding bool) {
-	ast.Inspect(file, func(n ast.Node) bool {
+func (m *ASTModifier) UpdateFunctionCalls() {
+	ast.Inspect(m.File, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.CallExpr:
-			updateCall(node, argName, argType, isAdding)
+			m.updateCall(node)
 		case *ast.FuncLit:
-			updateFuncType(node.Type, argName, argType, isAdding)
+			m.updateFuncType(node.Type)
 		}
 		return true
 	})
 }
 
-func updateCall(call *ast.CallExpr, argName string, argType string, isAdding bool) {
-	if shouldUpdateCall(call) {
-		if isAdding {
-			// Проверяем, существует ли уже аргумент
+func (m *ASTModifier) updateCall(call *ast.CallExpr) {
+	if m.shouldUpdateCall(call) {
+		if m.IsAdding {
 			for _, arg := range call.Args {
-				if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
+				if ident, ok := arg.(*ast.Ident); ok && ident.Name == m.ArgName {
 					return // Аргумент уже существует в вызове
 				}
 			}
-			call.Args = append(call.Args, &ast.Ident{Name: argName})
+			call.Args = append(call.Args, &ast.Ident{Name: m.ArgName})
 		} else {
 			for i, arg := range call.Args {
-				if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
+				if ident, ok := arg.(*ast.Ident); ok && ident.Name == m.ArgName {
 					call.Args = append(call.Args[:i], call.Args[i+1:]...)
 					break
 				}
@@ -154,33 +144,31 @@ func updateCall(call *ast.CallExpr, argName string, argType string, isAdding boo
 		}
 	}
 
-	// Обновляем типы функциональных аргументов
 	for i, arg := range call.Args {
 		switch argNode := arg.(type) {
 		case *ast.FuncLit:
-			updateFuncType(argNode.Type, argName, argType, isAdding)
+			m.updateFuncType(argNode.Type)
 		case *ast.Ident:
 			if argNode.Obj != nil && argNode.Obj.Decl != nil {
 				switch decl := argNode.Obj.Decl.(type) {
 				case *ast.FuncDecl:
-					updateFuncType(decl.Type, argName, argType, isAdding)
+					m.updateFuncType(decl.Type)
 				case *ast.Field:
 					if funcType, ok := decl.Type.(*ast.FuncType); ok {
-						updateFuncType(funcType, argName, argType, isAdding)
+						m.updateFuncType(funcType)
 					}
 				}
 			}
 		}
-		// Обновляем тип аргумента в вызове, если это функциональный тип
 		if funcType, ok := call.Args[i].(*ast.FuncLit); ok {
-			updateFuncType(funcType.Type, argName, argType, isAdding)
+			m.updateFuncType(funcType.Type)
 		}
 	}
 }
 
-func WriteModifiedAST(file *ast.File, filename string) error {
+func (m *ASTModifier) WriteModifiedAST(filename string) error {
 	var buf bytes.Buffer
-	if err := format.Node(&buf, token.NewFileSet(), file); err != nil {
+	if err := format.Node(&buf, token.NewFileSet(), m.File); err != nil {
 		return fmt.Errorf("failed to format AST: %w", err)
 	}
 
@@ -191,10 +179,9 @@ func WriteModifiedAST(file *ast.File, filename string) error {
 	return nil
 }
 
-func shouldUpdateCall(call *ast.CallExpr) bool {
+func (m *ASTModifier) shouldUpdateCall(call *ast.CallExpr) bool {
 	if selExpr, ok := call.Fun.(*ast.SelectorExpr); ok {
 		if ident, ok := selExpr.X.(*ast.Ident); ok {
-			// Не обновляем вызовы fmt.Println и подобные
 			return ident.Name != "fmt"
 		}
 	}

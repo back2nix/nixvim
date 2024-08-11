@@ -29,25 +29,28 @@ func RemoveArgument(req RemoveArgumentRequest, files []string) error {
 			return fmt.Errorf("failed to parse file %s: %w", file, err)
 		}
 
+		modifier := ast.NewASTModifier(astFile, req.TargetFunc, req.ArgName, "", false)
+
 		// Modify the target function
-		err = ast.ModifyFunction(astFile, req.TargetFunc, req.ArgName, "", false)
+		err = modifier.ModifyFunction()
 		if err != nil {
 			return fmt.Errorf("failed to modify function %s: %w", req.TargetFunc, err)
 		}
 
 		// Update calls to all functions
-		ast.UpdateFunctionCalls(astFile, req.ArgName, "", false)
+		modifier.UpdateFunctionCalls()
 
 		// Modify each function in the call chain
 		for _, caller := range chain.Callers {
-			err = ast.ModifyFunction(astFile, caller, req.ArgName, "", false)
+			modifierCaller := ast.NewASTModifier(astFile, caller, req.ArgName, "", false)
+			err = modifierCaller.ModifyFunction()
 			if err != nil {
 				return fmt.Errorf("failed to modify function %s: %w", caller, err)
 			}
 		}
 
 		// Write the modified AST back to the file
-		err = ast.WriteModifiedAST(astFile, file)
+		err = modifier.WriteModifiedAST(file)
 		if err != nil {
 			return fmt.Errorf("failed to write modified AST to file %s: %w", file, err)
 		}
