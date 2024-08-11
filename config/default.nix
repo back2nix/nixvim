@@ -41,15 +41,6 @@ in {
     ./plugins/golang_rename_alias_import_nvim/plugin.nix
     ./plugins/golang_move_function_nvim/plugin.nix
 
-    # smart-replace example_golang_plugin example_golang_plugin_nvim -m -d example_golang_plugin
-    # smart-replace go_import_complete go_import_complete_nvim  -m -d go_import_complete
-    # smart-replace go_import_plugin_nvim golang_import_plugin_nvim  -m -d go_import_plugin_nvim
-    # smart-replace golang_validator_plugin golang_validator_plugin_nvim -m -d golang_validator_plugin
-    # smart-replace golang_rename_import golang_rename_import_nvim -m -d golang_rename_import
-    # smart-replace golang_rename_alias_import golang_rename_alias_import_nvim -m -d golang_rename_alias_import
-    # smart-replace golang_move_function golang_move_function_nvim -m -d golang_move_function
-    # # smart-replace golang_move_function_nvim golang_arg_refactor_nvim -d golang_arg_refactor_nvim
-
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix
     # ./plugins/treesitter/treesitter-textobjects.nix
