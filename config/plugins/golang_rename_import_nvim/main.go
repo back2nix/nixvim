@@ -37,12 +37,25 @@ func main() {
 
 func renameImport(v *nvim.Nvim, args []string) (string, error) {
 	if len(args) != 3 {
-		return "", fmt.Errorf("expected 3 arguments: projectRoot, oldImport, newImport")
+		return "", fmt.Errorf("expected 3 arguments: currentDir, oldImport, newImport")
 	}
 
-	projectRoot := args[0]
+	currentDir := args[0]
 	oldImport := args[1]
 	newImport := args[2]
+
+	// Находим корень проекта (директорию, содержащую go.mod)
+	projectRoot := currentDir
+	for {
+		if _, err := os.Stat(filepath.Join(projectRoot, "go.mod")); err == nil {
+			break
+		}
+		parent := filepath.Dir(projectRoot)
+		if parent == projectRoot {
+			return "", fmt.Errorf("go.mod not found in project hierarchy")
+		}
+		projectRoot = parent
+	}
 
 	// Определение имени модуля из go.mod
 	moduleName, err := getModuleName(projectRoot)
@@ -50,45 +63,57 @@ func renameImport(v *nvim.Nvim, args []string) (string, error) {
 		return "", fmt.Errorf("failed to get module name: %v", err)
 	}
 
-	// 1. Анализ старого и нового пути импорта
-	oldRelPath := strings.TrimPrefix(oldImport, moduleName+"/")
-	newRelPath := strings.TrimPrefix(newImport, moduleName+"/")
+	// Преобразование импортов в относительные пути
+	oldRelPath, err := filepath.Rel(moduleName, oldImport)
+	if err != nil {
+		return "", fmt.Errorf("failed to get relative path for old import: %v", err)
+	}
+	newRelPath, err := filepath.Rel(moduleName, newImport)
+	if err != nil {
+		return "", fmt.Errorf("failed to get relative path for new import: %v", err)
+	}
+
 	oldPath := filepath.Join(projectRoot, oldRelPath)
 	newPath := filepath.Join(projectRoot, newRelPath)
 
-	// 2. Создание новой структуры директорий
+	// Создание новой структуры директорий
 	if err := os.MkdirAll(filepath.Dir(newPath), 0o755); err != nil {
 		return "", fmt.Errorf("failed to create new directory structure: %v", err)
 	}
 
-	// 3. Перемещение файлов
+	// Перемещение файлов
 	if err := moveFiles(oldPath, newPath); err != nil {
 		return "", fmt.Errorf("failed to move files: %v", err)
 	}
 
-	// 4. Удаление пустых директорий
+	// Удаление пустых директорий
 	if err := removeEmptyDirs(oldPath); err != nil {
 		return "", fmt.Errorf("failed to remove empty directories: %v", err)
 	}
 
-	// 5. Обновление импортов и использования пакетов
+	// Обновление импортов и использования пакетов
 	goFiles, err := findAllGoFiles(projectRoot)
 	if err != nil {
 		return "", fmt.Errorf("failed to find Go files: %v", err)
 	}
 
+	var errors []string
 	for _, file := range goFiles {
 		if err := updateFileContent(file, oldImport, newImport); err != nil {
-			return "", fmt.Errorf("failed to update content in %s: %v", file, err)
+			log.Printf("Error updating file %s: %v", file, err)
+			errors = append(errors, fmt.Sprintf("Failed to update %s: %v", file, err))
 		}
 	}
 
-	// 6. Обновление объявлений пакетов
+	// Обновление объявлений пакетов
 	newPackageName := filepath.Base(newPath)
 	if err := updatePackageDeclarations(newPath, newPackageName); err != nil {
 		return "", fmt.Errorf("failed to update package declarations: %v", err)
 	}
 
+	if len(errors) > 0 {
+		return fmt.Sprintf("Import renamed with some errors:\n%s", strings.Join(errors, "\n")), nil
+	}
 	return "Import renamed successfully", nil
 }
 
@@ -243,18 +268,27 @@ func updateFileContent(filePath, oldImport, newImport string) error {
 
 // getModuleName читает имя модуля из go.mod файла
 func getModuleName(projectRoot string) (string, error) {
-	modFile := filepath.Join(projectRoot, "go.mod")
-	content, err := ioutil.ReadFile(modFile)
-	if err != nil {
-		return "", err
+	dir := projectRoot
+	for {
+		modFile := filepath.Join(dir, "go.mod")
+		content, err := ioutil.ReadFile(modFile)
+		if err == nil {
+			modName := modfile.ModulePath(content)
+			if modName == "" {
+				return "", fmt.Errorf("module name not found in go.mod")
+			}
+			return modName, nil
+		}
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			// Достигли корня файловой системы
+			return "", fmt.Errorf("go.mod not found in project hierarchy")
+		}
+		dir = parent
 	}
-
-	modName := modfile.ModulePath(content)
-	if modName == "" {
-		return "", fmt.Errorf("module name not found in go.mod")
-	}
-
-	return modName, nil
 }
 
 func findGoFiles(root string) ([]string, error) {
