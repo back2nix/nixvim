@@ -172,10 +172,28 @@ func findAllGoFiles(root string) ([]string, error) {
 }
 
 func updateFileContent(filePath, oldImport, newImport string) error {
-	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, filePath, nil, parser.ParseComments)
+	// Check if file exists and is not empty
+	info, err := os.Stat(filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("error accessing file %s: %v", filePath, err)
+	}
+	if info.Size() == 0 {
+		log.Printf("Skipping empty file: %s", filePath)
+		return nil // Skip empty files instead of returning an error
+	}
+
+	// Read file contents
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return fmt.Errorf("error reading file %s: %v", filePath, err)
+	}
+
+	// Parse file
+	fset := token.NewFileSet()
+	node, err := parser.ParseFile(fset, filePath, content, parser.ParseComments)
+	if err != nil {
+		log.Printf("Error parsing file %s: %v\nFile contents:\n%s", filePath, err, string(content))
+		return fmt.Errorf("error parsing file %s: %v", filePath, err)
 	}
 
 	var importChanged bool
@@ -213,9 +231,11 @@ func updateFileContent(filePath, oldImport, newImport string) error {
 	if importChanged {
 		var buf bytes.Buffer
 		if err := format.Node(&buf, fset, node); err != nil {
-			return err
+			return fmt.Errorf("error formatting updated AST for %s: %v", filePath, err)
 		}
-		return ioutil.WriteFile(filePath, buf.Bytes(), 0o644)
+		if err := ioutil.WriteFile(filePath, buf.Bytes(), 0o644); err != nil {
+			return fmt.Errorf("error writing updated content to %s: %v", filePath, err)
+		}
 	}
 
 	return nil
