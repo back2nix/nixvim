@@ -1,4 +1,4 @@
-package ast_test
+package cast
 
 import (
 	stdAst "go/ast"
@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/back2nix/golang_arg_refactor_nvim/internal/ast"
+	"github.com/back2nix/golang_arg_refactor_nvim/internal/cast"
 )
 
 func TestASTModifier(t *testing.T) {
@@ -32,7 +32,7 @@ var testVar = func(b string) string {
 	}
 
 	// Step 2: Test creating a new ASTModifier
-	modifier := ast.NewASTModifier(file, "testFunction", "newArg", "string", true)
+	modifier := cast.NewASTModifier(file, "testFunction", "newArg", "string", true)
 	if modifier == nil {
 		t.Fatal("Failed to create ASTModifier")
 	}
@@ -54,7 +54,7 @@ var testVar = func(b string) string {
 	})
 
 	// Step 4: Test removing an argument from the function
-	modifier = ast.NewASTModifier(file, "testFunction", "newArg", "string", false)
+	modifier = cast.NewASTModifier(file, "testFunction", "newArg", "string", false)
 	err = modifier.ModifyFunction()
 	if err != nil {
 		t.Fatalf("Failed to modify function: %v", err)
@@ -71,7 +71,7 @@ var testVar = func(b string) string {
 	})
 
 	// Step 5: Test modifying function literal
-	modifier = ast.NewASTModifier(file, "testVar", "newArg", "int", true)
+	modifier = cast.NewASTModifier(file, "testVar", "newArg", "int", true)
 	err = modifier.ModifyFunction()
 	if err != nil {
 		t.Fatalf("Failed to modify function literal: %v", err)

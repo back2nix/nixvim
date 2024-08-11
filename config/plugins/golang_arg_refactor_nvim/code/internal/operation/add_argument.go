@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/back2nix/golang_arg_refactor_nvim/internal/analysis"
-	"github.com/back2nix/golang_arg_refactor_nvim/internal/ast"
+	"github.com/back2nix/golang_arg_refactor_nvim/internal/cast"
 )
 
 // AddArgumentRequest represents a request to add an argument to a function
@@ -27,12 +27,12 @@ func AddArgument(req AddArgumentRequest, files []string) error {
 
 	// Modify the target function and its callers
 	for _, file := range files {
-		astFile, err := ast.ParseFile(file)
+		astFile, err := cast.ParseFile(file)
 		if err != nil {
 			return fmt.Errorf("failed to parse file %s: %w", file, err)
 		}
 
-		modifier := ast.NewASTModifier(astFile, req.TargetFunc, req.ArgName, req.ArgType, true)
+		modifier := cast.NewASTModifier(astFile, req.TargetFunc, req.ArgName, req.ArgType, true)
 
 		// Modify the target function
 		err = modifier.ModifyFunction()
@@ -46,7 +46,7 @@ func AddArgument(req AddArgumentRequest, files []string) error {
 		// Modify each function in the call chain
 		for _, caller := range chain.Callers {
 			fmt.Fprintf(os.Stderr, "DEBUGPRINT[2]: add_argument.go:47: caller=%+v\n", caller)
-			modifierCaller := ast.NewASTModifier(astFile, caller, req.ArgName, req.ArgType, true)
+			modifierCaller := cast.NewASTModifier(astFile, caller, req.ArgName, req.ArgType, true)
 			err = modifierCaller.ModifyFunction()
 			if err != nil {
 				return fmt.Errorf("failed to modify function %s: %w", caller, err)
