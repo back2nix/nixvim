@@ -9,47 +9,146 @@ import (
 	"io/ioutil"
 )
 
-// ModifyFunction adds or removes an argument from a function declaration
 func ModifyFunction(file *ast.File, funcName string, argName string, argType string, isAdding bool) error {
-	var targetFunc *ast.FuncDecl
 	ast.Inspect(file, func(n ast.Node) bool {
-		if fn, ok := n.(*ast.FuncDecl); ok && fn.Name.Name == funcName {
-			targetFunc = fn
-			return false
+		switch node := n.(type) {
+		case *ast.FuncDecl:
+			if isAdding {
+				addArgumentToFunction(node, argName, argType)
+			} else {
+				removeArgumentFromFunction(node, argName)
+			}
+		case *ast.FuncLit:
+			if isAdding {
+				addArgumentToFuncLit(node, argName, argType)
+			} else {
+				removeArgumentFromFuncLit(node, argName)
+			}
 		}
 		return true
 	})
 
-	if targetFunc == nil {
-		return fmt.Errorf("function %s not found", funcName)
-	}
-
-	if isAdding {
-		return addArgument(targetFunc, argName, argType)
-	}
-	return removeArgument(targetFunc, argName)
+	UpdateFunctionCalls(file, argName, argType, isAdding)
+	return nil
 }
 
-func addArgument(fn *ast.FuncDecl, argName, argType string) error {
+func addArgumentToFunction(fn *ast.FuncDecl, argName, argType string) {
 	newField := &ast.Field{
 		Names: []*ast.Ident{ast.NewIdent(argName)},
 		Type:  ast.NewIdent(argType),
 	}
 
-	if len(fn.Type.Params.List) > 0 {
-		lastParam := fn.Type.Params.List[len(fn.Type.Params.List)-1]
-		if lastIdent, ok := lastParam.Type.(*ast.Ident); ok && lastIdent.Name == argType {
-			// If the last parameter is of the same type, just add the new name
-			lastParam.Names = append(lastParam.Names, ast.NewIdent(argName))
-		} else {
-			// Otherwise, add a new field
-			fn.Type.Params.List = append(fn.Type.Params.List, newField)
+	for _, field := range fn.Type.Params.List {
+		for _, name := range field.Names {
+			if name.Name == argName {
+				return // Argument already exists
+			}
 		}
-	} else {
-		fn.Type.Params.List = append(fn.Type.Params.List, newField)
 	}
 
-	return nil
+	fn.Type.Params.List = append(fn.Type.Params.List, newField)
+	updateFunctionBody(fn.Body, argName)
+}
+
+func removeArgumentFromFunction(fn *ast.FuncDecl, argName string) {
+	for i, field := range fn.Type.Params.List {
+		for j, name := range field.Names {
+			if name.Name == argName {
+				field.Names = append(field.Names[:j], field.Names[j+1:]...)
+				if len(field.Names) == 0 {
+					fn.Type.Params.List = append(fn.Type.Params.List[:i], fn.Type.Params.List[i+1:]...)
+				}
+				return
+			}
+		}
+	}
+}
+
+func addArgumentToFuncLit(fn *ast.FuncLit, argName, argType string) {
+	newField := &ast.Field{
+		Names: []*ast.Ident{ast.NewIdent(argName)},
+		Type:  ast.NewIdent(argType),
+	}
+
+	for _, field := range fn.Type.Params.List {
+		for _, name := range field.Names {
+			if name.Name == argName {
+				return // Argument already exists
+			}
+		}
+	}
+
+	fn.Type.Params.List = append(fn.Type.Params.List, newField)
+	updateFunctionBody(fn.Body, argName)
+}
+
+func removeArgumentFromFuncLit(fn *ast.FuncLit, argName string) {
+	for i, field := range fn.Type.Params.List {
+		for j, name := range field.Names {
+			if name.Name == argName {
+				field.Names = append(field.Names[:j], field.Names[j+1:]...)
+				if len(field.Names) == 0 {
+					fn.Type.Params.List = append(fn.Type.Params.List[:i], fn.Type.Params.List[i+1:]...)
+				}
+				return
+			}
+		}
+	}
+}
+
+func updateFunctionBody(body *ast.BlockStmt, argName string) {
+	ast.Inspect(body, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case *ast.CallExpr:
+			updateCall(node, argName, true)
+		}
+		return true
+	})
+}
+
+func UpdateFunctionCalls(file *ast.File, argName string, argType string, isAdding bool) {
+	ast.Inspect(file, func(n ast.Node) bool {
+		switch node := n.(type) {
+		case *ast.CallExpr:
+			updateCall(node, argName, isAdding)
+		case *ast.FuncLit:
+			if isAdding {
+				addArgumentToFuncLit(node, argName, argType)
+			} else {
+				removeArgumentFromFuncLit(node, argName)
+			}
+		}
+		return true
+	})
+}
+
+func updateCall(call *ast.CallExpr, argName string, isAdding bool) {
+	if isAdding {
+		for _, arg := range call.Args {
+			if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
+				return // Argument already exists in the call
+			}
+		}
+		call.Args = append(call.Args, &ast.Ident{Name: argName})
+	} else {
+		for i, arg := range call.Args {
+			if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
+				call.Args = append(call.Args[:i], call.Args[i+1:]...)
+				break
+			}
+		}
+	}
+
+	// Update function types in arguments
+	for _, arg := range call.Args {
+		if funcLit, ok := arg.(*ast.FuncLit); ok {
+			if isAdding {
+				addArgumentToFuncLit(funcLit, argName, "int") // Assuming int type for simplicity
+			} else {
+				removeArgumentFromFuncLit(funcLit, argName)
+			}
+		}
+	}
 }
 
 func WriteModifiedAST(file *ast.File, filename string) error {
@@ -63,70 +162,4 @@ func WriteModifiedAST(file *ast.File, filename string) error {
 	}
 
 	return nil
-}
-
-func removeArgument(fn *ast.FuncDecl, argName string) error {
-	for i, field := range fn.Type.Params.List {
-		for _, name := range field.Names {
-			if name.Name == argName {
-				fn.Type.Params.List = append(fn.Type.Params.List[:i], fn.Type.Params.List[i+1:]...)
-				return nil
-			}
-		}
-	}
-	return fmt.Errorf("argument %s not found in function %s", argName, fn.Name.Name)
-}
-
-func UpdateFunctionCalls(file *ast.File, funcName string, argName string, argType string, isAdding bool) {
-	ast.Inspect(file, func(n ast.Node) bool {
-		switch node := n.(type) {
-		case *ast.CallExpr:
-			if ident, ok := node.Fun.(*ast.Ident); ok && ident.Name == funcName {
-				if isAdding {
-					newArg := &ast.Ident{Name: argName}
-					node.Args = append(node.Args, newArg)
-				} else {
-					// Removal logic
-					for i, arg := range node.Args {
-						if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
-							node.Args = append(node.Args[:i], node.Args[i+1:]...)
-							break
-						}
-					}
-				}
-			}
-
-			// Update arguments of nested calls
-			for i, arg := range node.Args {
-				if call, ok := arg.(*ast.CallExpr); ok {
-					if funIdent, ok := call.Fun.(*ast.Ident); ok {
-						UpdateFunctionCalls(file, funIdent.Name, argName, argType, isAdding)
-						// If we're adding and this is a relevant function, update this argument
-						if isAdding && (funIdent.Name == funcName || containsRelevantCall(call, funcName)) {
-							node.Args[i] = &ast.CallExpr{
-								Fun:  call.Fun,
-								Args: append(call.Args, &ast.Ident{Name: argName}),
-							}
-						}
-					}
-				}
-			}
-		}
-		return true
-	})
-}
-
-// Helper function to check if a call expression contains a relevant function call
-func containsRelevantCall(expr ast.Expr, funcName string) bool {
-	relevant := false
-	ast.Inspect(expr, func(n ast.Node) bool {
-		if call, ok := n.(*ast.CallExpr); ok {
-			if ident, ok := call.Fun.(*ast.Ident); ok && ident.Name == funcName {
-				relevant = true
-				return false
-			}
-		}
-		return true
-	})
-	return relevant
 }

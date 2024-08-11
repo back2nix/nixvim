@@ -25,7 +25,7 @@ import (
 )
 
 func main() {
-	result := outerFunction(10, z)
+	result := outerFunction(10, 20, z)
 	fmt.Println("Result:", result)
 }
 
@@ -43,7 +43,7 @@ func innerFunction(x, y int) int {
 	return add(x, y)
 }
 
-func add(x, y int) int {
+func add(x, y int, z int) int {
 	return x + y
 }
 `
@@ -86,7 +86,7 @@ func main() {
 	fmt.Println("Result:", result)
 }
 func outerFunction(a, b, z int) int {
-	return middleFunction(a, b, z, func(x, y, z int) int {
+	return middleFunction(a, b, z, func(x, y int, z int) int {
 		return innerFunction(x, y, z)
 	})
 }

@@ -36,16 +36,15 @@ func AddArgument(req AddArgumentRequest, files []string) error {
 			return fmt.Errorf("failed to modify function %s: %w", req.TargetFunc, err)
 		}
 
-		// Update calls to the target function
-		ast.UpdateFunctionCalls(astFile, req.TargetFunc, req.ArgName, req.ArgType, true)
+		// Update calls to all functions
+		ast.UpdateFunctionCalls(astFile, req.ArgName, req.ArgType, true)
 
-		// Modify and update calls for each function in the call chain
+		// Modify each function in the call chain
 		for _, caller := range chain.Callers {
 			err = ast.ModifyFunction(astFile, caller, req.ArgName, req.ArgType, true)
 			if err != nil {
 				return fmt.Errorf("failed to modify function %s: %w", caller, err)
 			}
-			ast.UpdateFunctionCalls(astFile, caller, req.ArgName, req.ArgType, true)
 		}
 
 		// Write the modified AST back to the file
