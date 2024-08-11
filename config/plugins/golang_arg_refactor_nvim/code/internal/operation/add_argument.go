@@ -2,6 +2,7 @@ package operation
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/back2nix/golang_arg_refactor_nvim/internal/analysis"
 	"github.com/back2nix/golang_arg_refactor_nvim/internal/ast"
@@ -22,6 +23,7 @@ func AddArgument(req AddArgumentRequest, files []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to analyze call chain: %w", err)
 	}
+	fmt.Fprintf(os.Stderr, "DEBUGPRINT[1]: add_argument.go:21: chain=%+v\n", chain)
 
 	// Modify the target function and its callers
 	for _, file := range files {
@@ -43,6 +45,7 @@ func AddArgument(req AddArgumentRequest, files []string) error {
 
 		// Modify each function in the call chain
 		for _, caller := range chain.Callers {
+			fmt.Fprintf(os.Stderr, "DEBUGPRINT[2]: add_argument.go:47: caller=%+v\n", caller)
 			modifierCaller := ast.NewASTModifier(astFile, caller, req.ArgName, req.ArgType, true)
 			err = modifierCaller.ModifyFunction()
 			if err != nil {

@@ -31,11 +31,6 @@ func AnalyzeCallChain(targetFunc string, files []string, maxDepth int) (CallChai
 	visited := make(map[string]bool)
 	analyzeCallChainRecursive(targetFunc, fileInfos, &callers, visited, maxDepth)
 
-	// Reverse the order of callers to get the correct chain
-	for i, j := 0, len(callers)-1; i < j; i, j = i+1, j-1 {
-		callers[i], callers[j] = callers[j], callers[i]
-	}
-
 	return CallChain{Function: targetFunc, Callers: callers}, nil
 }
 
@@ -60,29 +55,70 @@ func analyzeCallChainRecursive(currentFunc string, files []FileInfo, callers *[]
 	}
 
 	visited[currentFunc] = true
+	defer func() { visited[currentFunc] = false }() // Allow revisiting for different paths
+
 	for _, file := range files {
 		ast.Inspect(file.AST, func(n ast.Node) bool {
-			if call, ok := n.(*ast.CallExpr); ok {
-				if ident, ok := call.Fun.(*ast.Ident); ok && ident.Name == currentFunc {
-					if funcDecl := findEnclosingFunction(file.AST, call); funcDecl != nil {
-						callerName := funcDecl.Name.Name
-						*callers = append(*callers, callerName)
-						analyzeCallChainRecursive(callerName, files, callers, visited, depth-1)
+			switch node := n.(type) {
+			case *ast.CallExpr:
+				if isTargetFunctionCall(node, currentFunc) {
+					if enclosingFunc := findEnclosingFunction(file.AST, node); enclosingFunc != nil {
+						callerName := getFunctionFullName(enclosingFunc)
+						if !contains(*callers, callerName) {
+							*callers = append(*callers, callerName)
+							analyzeCallChainRecursive(callerName, files, callers, visited, depth-1)
+						}
 					}
 				}
+			case *ast.FuncDecl:
+				ast.Inspect(node.Body, func(n ast.Node) bool {
+					if call, ok := n.(*ast.CallExpr); ok {
+						if isTargetFunctionCall(call, currentFunc) {
+							callerName := getFunctionFullName(node)
+							if !contains(*callers, callerName) {
+								*callers = append(*callers, callerName)
+								analyzeCallChainRecursive(callerName, files, callers, visited, depth-1)
+							}
+						}
+					}
+					return true
+				})
 			}
 			return true
 		})
 	}
-	visited[currentFunc] = false // Allow revisiting for different paths
+}
+
+func isTargetFunctionCall(call *ast.CallExpr, targetFunc string) bool {
+	switch fun := call.Fun.(type) {
+	case *ast.Ident:
+		return fun.Name == targetFunc
+	case *ast.SelectorExpr:
+		return fun.Sel.Name == targetFunc
+	}
+	return false
+}
+
+func getFunctionFullName(funcDecl *ast.FuncDecl) string {
+	if funcDecl.Recv != nil && len(funcDecl.Recv.List) > 0 {
+		recv := funcDecl.Recv.List[0].Type
+		if starExpr, ok := recv.(*ast.StarExpr); ok {
+			recv = starExpr.X
+		}
+		if ident, ok := recv.(*ast.Ident); ok {
+			return ident.Name + "." + funcDecl.Name.Name
+		}
+	}
+	return funcDecl.Name.Name
 }
 
 func findEnclosingFunction(file *ast.File, node ast.Node) *ast.FuncDecl {
 	var enclosingFunc *ast.FuncDecl
 	ast.Inspect(file, func(n ast.Node) bool {
-		if fd, ok := n.(*ast.FuncDecl); ok {
-			if fd.Body != nil && nodeWithinRange(node, fd.Body.Pos(), fd.Body.End()) {
-				enclosingFunc = fd
+		switch fn := n.(type) {
+		case *ast.FuncDecl:
+			if fn.Body != nil && nodeWithinRange(node, fn.Body.Pos(), fn.Body.End()) {
+				enclosingFunc = fn
 				return false
 			}
 		}
@@ -93,6 +129,15 @@ func findEnclosingFunction(file *ast.File, node ast.Node) *ast.FuncDecl {
 
 func nodeWithinRange(node ast.Node, start, end token.Pos) bool {
 	return node.Pos() >= start && node.End() <= end
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
 
 // GetAllGoFiles returns all Go files in the given directory and its subdirectories

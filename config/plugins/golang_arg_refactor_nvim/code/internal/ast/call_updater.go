@@ -1,7 +1,9 @@
 package ast
 
 import (
+	"fmt"
 	"go/ast"
+	"os"
 )
 
 func (m *ASTModifier) UpdateFunctionCalls() {
@@ -28,11 +30,14 @@ func (m *ASTModifier) updateCall(call *ast.CallExpr) {
 					return // Аргумент уже существует в вызове
 				}
 			}
+			fmt.Fprintf(os.Stderr, "DEBUGPRINT[3]: call_updater.go:33: m.ArgName=%+v\n", call)
+			fmt.Fprintf(os.Stderr, "DEBUGPRINT[3]: call_updater.go:33: m.ArgName=%+v\n", m.ArgName)
 			call.Args = append(call.Args, &ast.Ident{Name: m.ArgName})
 		} else {
 			for i, arg := range call.Args {
 				if ident, ok := arg.(*ast.Ident); ok && ident.Name == m.ArgName {
 					call.Args = append(call.Args[:i], call.Args[i+1:]...)
+					fmt.Fprintf(os.Stderr, "DEBUGPRINT[1]: call_updater.go:34 (before if ident, ok := arg.(*ast.Ident); ok && …)\n")
 					break
 				}
 			}
@@ -64,8 +69,10 @@ func (m *ASTModifier) updateCall(call *ast.CallExpr) {
 func (m *ASTModifier) isTargetFunctionCall(call *ast.CallExpr) bool {
 	switch fun := call.Fun.(type) {
 	case *ast.Ident:
+		// fmt.Fprintf(os.Stderr, "DEBUGPRINT[5]: call_updater.go:72: fun.Name=%+v target:%+v\n", fun.Name, m.FuncName)
 		return fun.Name == m.FuncName
 	case *ast.SelectorExpr:
+		// fmt.Fprintf(os.Stderr, "DEBUGPRINT[6]: call_updater.go:75: fun.Sel.Name=%+v target:%+v\n", fun.Sel.Name, m.FuncName)
 		return fun.Sel.Name == m.FuncName
 	}
 	return false

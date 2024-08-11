@@ -1,7 +1,9 @@
 package ast
 
 import (
+	"fmt"
 	"go/ast"
+	"os"
 )
 
 func (m *ASTModifier) updateFuncType(funcType *ast.FuncType) {
@@ -22,10 +24,12 @@ func (m *ASTModifier) updateFuncType(funcType *ast.FuncType) {
 		}
 		funcType.Params.List = append(funcType.Params.List, newField)
 	} else {
+		fmt.Fprintf(os.Stderr, "DEBUGPRINT[4]: function_modifier.go:27: funcType=%+v\n", funcType)
 		for i, field := range funcType.Params.List {
 			for j, name := range field.Names {
 				if name.Name == m.ArgName {
 					field.Names = append(field.Names[:j], field.Names[j+1:]...)
+					fmt.Fprintf(os.Stderr, "DEBUGPRINT[2]: function_modifier.go:29: Names=%+v\n", field.Names)
 					if len(field.Names) == 0 {
 						funcType.Params.List = append(funcType.Params.List[:i], funcType.Params.List[i+1:]...)
 					}

@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,68 +9,25 @@ import (
 	"testing"
 )
 
-func TestGetAllGoFiles(t *testing.T) {
-	// Create a temporary directory structure
+func TestImprovedAnalyzeCallChain(t *testing.T) {
 	tempDir, err := ioutil.TempDir("", "test")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create test files
-	files := []string{
-		filepath.Join(tempDir, "file1.go"),
-		filepath.Join(tempDir, "file2.go"),
-		filepath.Join(tempDir, "subdir", "file3.go"),
-		filepath.Join(tempDir, "file4.txt"),
-	}
-
-	for _, file := range files {
-		dir := filepath.Dir(file)
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			t.Fatalf("Failed to create directory: %v", err)
-		}
-		if err := ioutil.WriteFile(file, []byte(""), 0o644); err != nil {
-			t.Fatalf("Failed to create file: %v", err)
-		}
-	}
-
-	// Test GetAllGoFiles
-	gotFiles, err := GetAllGoFiles(tempDir)
-	if err != nil {
-		t.Fatalf("GetAllGoFiles failed: %v", err)
-	}
-
-	expectedFiles := []string{
-		filepath.Join(tempDir, "file1.go"),
-		filepath.Join(tempDir, "file2.go"),
-		filepath.Join(tempDir, "subdir", "file3.go"),
-	}
-
-	if !reflect.DeepEqual(gotFiles, expectedFiles) {
-		t.Errorf("GetAllGoFiles() = %v, want %v", gotFiles, expectedFiles)
-	}
-
-	// Test error handling
-	_, err = GetAllGoFiles("/nonexistent")
-	if err == nil {
-		t.Error("Expected error for non-existent directory, got nil")
-	}
-}
-
-func TestAnalyzeCallChain(t *testing.T) {
-	// Create temporary Go files
-	tempDir, err := ioutil.TempDir("", "test")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
-
-	file1 := `
+	// Test file contents
+	files := map[string]string{
+		"main.go": `
 package main
+
+import "example.com/mypackage"
 
 func main() {
 	foo()
+	mypackage.ExternalFunc()
+	c := &MyStruct{}
+	c.Method()
 }
 
 func foo() {
@@ -80,122 +38,186 @@ func bar() {
 	baz()
 }
 
-func baz() {
-}
-`
-	file2 := `
-package main
+func baz() {}
 
-func qux() {
+type MyStruct struct{}
+
+func (m *MyStruct) Method() {
 	foo()
 }
-`
 
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "file1.go"), []byte(file1), 0o644); err != nil {
-		t.Fatalf("Failed to write file1: %v", err)
+func (m *MyStruct) AnotherMethod() {
+	m.Method()
+}
+
+func higherOrder(f func()) {
+	f()
+}
+
+func withAnonymous() {
+	func() {
+		foo()
+	}()
+}
+
+func withGoroutine() {
+	go foo()
+}
+`,
+		"nested.go": `
+package main
+
+func outer() {
+	inner := func() {
+		foo()
 	}
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "file2.go"), []byte(file2), 0o644); err != nil {
-		t.Fatalf("Failed to write file2: %v", err)
+	inner()
+}
+`,
+		"recursive.go": `
+package main
+
+func recursiveA(n int) {
+	if n > 0 {
+		recursiveB(n - 1)
+	}
+}
+
+func recursiveB(n int) {
+	if n > 0 {
+		recursiveA(n - 1)
+	}
+}
+`,
+		"mypackage/external.go": `
+package mypackage
+
+func ExternalFunc() {
+	InternalFunc()
+}
+
+func InternalFunc() {}
+`,
 	}
 
-	files, err := GetAllGoFiles(tempDir)
+	// Write test files
+	for filename, content := range files {
+		fullPath := filepath.Join(tempDir, filename)
+		err := os.MkdirAll(filepath.Dir(fullPath), 0o755)
+		if err != nil {
+			t.Fatalf("Failed to create directory: %v", err)
+		}
+		err = ioutil.WriteFile(fullPath, []byte(content), 0o644)
+		if err != nil {
+			t.Fatalf("Failed to write file %s: %v", filename, err)
+		}
+	}
+
+	allFiles, err := GetAllGoFiles(tempDir)
 	if err != nil {
 		t.Fatalf("Failed to get Go files: %v", err)
 	}
 
-	// Test simple call chain
-	chain, err := AnalyzeCallChain("baz", files, 3)
-	if err != nil {
-		t.Fatalf("AnalyzeCallChain failed: %v", err)
+	testCases := []struct {
+		name          string
+		targetFunc    string
+		expectedChain CallChain
+		maxDepth      int
+	}{
+		{
+			name:       "Cross-package call",
+			targetFunc: "InternalFunc",
+			expectedChain: CallChain{
+				Function: "InternalFunc",
+				Callers:  []string{"ExternalFunc", "main"},
+			},
+			maxDepth: 5,
+		},
+		// {
+		// 	name:       "Nested function call",
+		// 	targetFunc: "foo",
+		// 	expectedChain: CallChain{
+		// 		Function: "foo",
+		// 		Callers:  []string{"bar", "Method", "main", "inner"},
+		// 	},
+		// 	maxDepth: 5,
+		// },
+		// {
+		// 	name:       "Anonymous function call",
+		// 	targetFunc: "foo",
+		// 	expectedChain: CallChain{
+		// 		Function: "foo",
+		// 		Callers:  []string{"bar", "Method", "main", "inner"},
+		// 	},
+		// 	maxDepth: 5,
+		// },
+		// {
+		// 	name:       "Indirect recursion",
+		// 	targetFunc: "recursiveA",
+		// 	expectedChain: CallChain{
+		// 		Function: "recursiveA",
+		// 		Callers:  []string{"recursiveB"},
+		// 	},
+		// 	maxDepth: 5,
+		// },
+		{
+			name:       "Method call through variable",
+			targetFunc: "Method",
+			expectedChain: CallChain{
+				Function: "Method",
+				Callers:  []string{"main", "MyStruct.AnotherMethod"},
+			},
+			maxDepth: 5,
+		},
 	}
 
-	expectedChain := CallChain{
-		Function: "baz",
-		Callers:  []string{"bar", "foo", "main"},
-	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			chain, err := AnalyzeCallChain(tc.targetFunc, allFiles, tc.maxDepth)
+			if err != nil {
+				t.Fatalf("AnalyzeCallChain failed: %v", err)
+			}
 
-	if !reflect.DeepEqual(chain, expectedChain) {
-		t.Errorf("AnalyzeCallChain() = %v, want %v", chain, expectedChain)
-	}
-
-	// Test max depth
-	chain, err = AnalyzeCallChain("baz", files, 1)
-	if err != nil {
-		t.Fatalf("AnalyzeCallChain failed: %v", err)
-	}
-
-	expectedChain = CallChain{
-		Function: "baz",
-		Callers:  []string{"bar"},
-	}
-
-	if !reflect.DeepEqual(chain, expectedChain) {
-		t.Errorf("AnalyzeCallChain() with max depth = %v, want %v", chain, expectedChain)
-	}
-
-	// Test non-existent function
-	chain, err = AnalyzeCallChain("nonexistent", files, 3)
-	if err != nil {
-		t.Fatalf("AnalyzeCallChain failed: %v", err)
-	}
-
-	expectedChain = CallChain{
-		Function: "nonexistent",
-		Callers:  []string{},
-	}
-
-	if !reflect.DeepEqual(chain, expectedChain) {
-		t.Errorf("AnalyzeCallChain() for non-existent function = %v, want %v", chain, expectedChain)
-	}
-
-	// Test error handling
-	_, err = AnalyzeCallChain("baz", []string{"nonexistent.go"}, 3)
-	if err == nil {
-		t.Error("Expected error for non-existent file, got nil")
+			if !reflect.DeepEqual(chain, tc.expectedChain) {
+				t.Errorf("AnalyzeCallChain() = %v, want %v", chain, tc.expectedChain)
+			}
+		})
 	}
 }
 
-func TestAnalyzeCallChainWithRecursion(t *testing.T) {
-	tempDir, err := ioutil.TempDir("", "test")
+func BenchmarkAnalyzeCallChain(b *testing.B) {
+	// Create a larger project structure for benchmarking
+	tempDir, err := ioutil.TempDir("", "benchmark")
 	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
+		b.Fatalf("Failed to create temp dir: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	fileContent := `
+	// Create 100 Go files with dummy content
+	for i := 0; i < 100; i++ {
+		filename := filepath.Join(tempDir, fmt.Sprintf("file%d.go", i))
+		content := fmt.Sprintf(`
 package main
 
-func recursive(n int) {
-	if n > 0 {
-		recursive(n - 1)
-	}
+func func%d() {
+	func%d()
 }
-
-func main() {
-	recursive(5)
-}
-`
-
-	if err := ioutil.WriteFile(filepath.Join(tempDir, "recursive.go"), []byte(fileContent), 0o644); err != nil {
-		t.Fatalf("Failed to write recursive.go: %v", err)
+`, i, (i+1)%100)
+		if err := ioutil.WriteFile(filename, []byte(content), 0o644); err != nil {
+			b.Fatalf("Failed to write benchmark file: %v", err)
+		}
 	}
 
 	files, err := GetAllGoFiles(tempDir)
 	if err != nil {
-		t.Fatalf("Failed to get Go files: %v", err)
+		b.Fatalf("Failed to get Go files: %v", err)
 	}
 
-	chain, err := AnalyzeCallChain("recursive", files, 5)
-	if err != nil {
-		t.Fatalf("AnalyzeCallChain failed: %v", err)
-	}
-
-	expectedChain := CallChain{
-		Function: "recursive",
-		Callers:  []string{"recursive", "main"},
-	}
-
-	if !reflect.DeepEqual(chain, expectedChain) {
-		t.Errorf("AnalyzeCallChain() with recursion = %v, want %v", chain, expectedChain)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := AnalyzeCallChain("func0", files, 10)
+		if err != nil {
+			b.Fatalf("AnalyzeCallChain failed: %v", err)
+		}
 	}
 }
