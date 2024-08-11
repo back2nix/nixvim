@@ -22,16 +22,21 @@ type FileInfo struct {
 
 // AnalyzeCallChain analyzes the call chain for a given function in a set of files
 func AnalyzeCallChain(targetFunc string, files []string, maxDepth int) (CallChain, error) {
-	chain := CallChain{Function: targetFunc}
 	fileInfos, err := parseFiles(files)
 	if err != nil {
-		return chain, err
+		return CallChain{Function: targetFunc}, err
 	}
 
+	callers := make([]string, 0)
 	visited := make(map[string]bool)
-	analyzeCallChainRecursive(&chain, fileInfos, visited, maxDepth)
+	analyzeCallChainRecursive(targetFunc, fileInfos, &callers, visited, maxDepth)
 
-	return chain, nil
+	// Reverse the order of callers to get the correct chain
+	for i, j := 0, len(callers)-1; i < j; i, j = i+1, j-1 {
+		callers[i], callers[j] = callers[j], callers[i]
+	}
+
+	return CallChain{Function: targetFunc, Callers: callers}, nil
 }
 
 func parseFiles(files []string) ([]FileInfo, error) {
@@ -49,29 +54,27 @@ func parseFiles(files []string) ([]FileInfo, error) {
 	return fileInfos, nil
 }
 
-func analyzeCallChainRecursive(chain *CallChain, files []FileInfo, visited map[string]bool, depth int) {
-	if depth == 0 {
+func analyzeCallChainRecursive(currentFunc string, files []FileInfo, callers *[]string, visited map[string]bool, depth int) {
+	if depth == 0 || visited[currentFunc] {
 		return
 	}
 
+	visited[currentFunc] = true
 	for _, file := range files {
 		ast.Inspect(file.AST, func(n ast.Node) bool {
 			if call, ok := n.(*ast.CallExpr); ok {
-				if ident, ok := call.Fun.(*ast.Ident); ok && ident.Name == chain.Function {
+				if ident, ok := call.Fun.(*ast.Ident); ok && ident.Name == currentFunc {
 					if funcDecl := findEnclosingFunction(file.AST, call); funcDecl != nil {
 						callerName := funcDecl.Name.Name
-						if !visited[callerName] {
-							chain.Callers = append(chain.Callers, callerName)
-							visited[callerName] = true
-							subChain := &CallChain{Function: callerName}
-							analyzeCallChainRecursive(subChain, files, visited, depth-1)
-						}
+						*callers = append(*callers, callerName)
+						analyzeCallChainRecursive(callerName, files, callers, visited, depth-1)
 					}
 				}
 			}
 			return true
 		})
 	}
+	visited[currentFunc] = false // Allow revisiting for different paths
 }
 
 func findEnclosingFunction(file *ast.File, node ast.Node) *ast.FuncDecl {

@@ -5,3 +5,6 @@ config/h2
 h1
 h2
 request.http
+.null-ls*
+a0
+a1
