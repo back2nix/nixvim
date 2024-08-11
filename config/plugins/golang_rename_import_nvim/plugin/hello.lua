@@ -1,5 +1,5 @@
 local function log(message)
-	local log_file = io.open(vim.fn.stdpath("data") .. "/golang_rename_import_plugin.log", "a")
+	local log_file = io.open(vim.fn.stdpath("data") .. "/golang_rename_import_nvim_plugin.log", "a")
 	if log_file then
 		log_file:write(os.date("%Y-%m-%d %H:%M:%S ") .. message .. "\n")
 		log_file:close()
@@ -7,38 +7,38 @@ local function log(message)
 end
 
 local function ensure_job()
-	if vim.g.golang_rename_import_jobid and vim.fn.jobwait({ vim.g.golang_rename_import_jobid }, 0)[1] == -1 then
+	if vim.g.golang_rename_import_nvim_jobid and vim.fn.jobwait({ vim.g.golang_rename_import_nvim_jobid }, 0)[1] == -1 then
 		log("RPC server already running")
-		return vim.g.golang_rename_import_jobid
+		return vim.g.golang_rename_import_nvim_jobid
 	end
-	log("Attempting to start golang_rename_import_plugin RPC server")
+	log("Attempting to start golang_rename_import_nvim_plugin RPC server")
 
-	local plugin_path = vim.fn.exepath("golang_rename_import")
+	local plugin_path = vim.fn.exepath("golang_rename_import_nvim")
 	if plugin_path == "" then
-		log("golang_rename_import not found in PATH")
+		log("golang_rename_import_nvim not found in PATH")
 		return nil
 	end
 
 	log("Plugin path: " .. plugin_path)
-	vim.g.golang_rename_import_jobid = vim.fn.jobstart({ plugin_path }, {
+	vim.g.golang_rename_import_nvim_jobid = vim.fn.jobstart({ plugin_path }, {
 		rpc = true,
 		on_stderr = function(_, data)
 			for _, line in ipairs(data) do
-				log("golang_rename_import stderr: " .. line)
+				log("golang_rename_import_nvim stderr: " .. line)
 			end
 		end,
 		on_exit = function(_, exit_code)
-			log("golang_rename_import exited with code: " .. exit_code)
-			vim.g.golang_rename_import_jobid = nil
+			log("golang_rename_import_nvim exited with code: " .. exit_code)
+			vim.g.golang_rename_import_nvim_jobid = nil
 		end,
 	})
 
-	if vim.g.golang_rename_import_jobid <= 0 then
-		log("Failed to start golang_rename_import RPC server. Error code: " .. vim.g.golang_rename_import_jobid)
+	if vim.g.golang_rename_import_nvim_jobid <= 0 then
+		log("Failed to start golang_rename_import_nvim RPC server. Error code: " .. vim.g.golang_rename_import_nvim_jobid)
 		return nil
 	end
-	log("Successfully started golang_rename_import RPC server")
-	return vim.g.golang_rename_import_jobid
+	log("Successfully started golang_rename_import_nvim RPC server")
+	return vim.g.golang_rename_import_nvim_jobid
 end
 
 local function get_import_under_cursor()

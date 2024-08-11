@@ -5,7 +5,7 @@ local function ensure_job()
 	if chan then
 		return chan
 	end
-	chan = vim.fn.jobstart({ "golang_move_function" }, { rpc = true })
+	chan = vim.fn.jobstart({ "golang_move_function_nvim" }, { rpc = true })
 	return chan
 end
 

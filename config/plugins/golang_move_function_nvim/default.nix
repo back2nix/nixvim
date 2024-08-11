@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "go_import_complete";
+  pname = "golang_move_function_nvim";
   version = "0.1.0";
 
   src = ./.;

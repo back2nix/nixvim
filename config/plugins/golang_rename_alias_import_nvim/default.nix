@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "golang_rename_alias_import";
+  pname = "golang_rename_alias_import_nvim";
   version = "0.1.0";
 
   src = ./.;
@@ -20,7 +20,7 @@ buildGoModule rec {
   installPhase = ''
     mkdir -p $out/{bin,plugin}
     cp ${pname} $out/bin/${pname}
-    cp plugin/golang_rename_alias_import.lua $out/plugin/golang_rename_alias_import.lua
+    cp plugin/hello.lua $out/plugin/hello.lua
   '';
 
   meta = with lib; {

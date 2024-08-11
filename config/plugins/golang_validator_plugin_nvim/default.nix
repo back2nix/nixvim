@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "golang_move_function";
+  pname = "golang_validator_plugin_nvim";
   version = "0.1.0";
 
   src = ./.;
@@ -11,7 +11,7 @@ buildGoModule rec {
   # vendorSha256 = lib.fakeSha256;
 
   # vendorHash = lib.fakeHash;
-  vendorHash = "sha256-/Bl4G5STa5lnNntZnMmt+BfES+N7ZYAwC9tzpuqUKcc=";
+  vendorHash = "sha256-iXksfx4VlVfX+Q8/A3lqWgcltcaW8oHaQxsYM9kfTmo=";
 
   buildPhase = ''
     go build -mod=vendor -o ${pname} main.go
@@ -19,7 +19,7 @@ buildGoModule rec {
 
   installPhase = ''
     mkdir -p $out/{bin,plugin}
-    cp ${pname}  $out/bin/${pname}
+    cp ${pname} $out/bin/${pname}
     cp plugin/hello.lua $out/plugin/hello.lua
   '';
 

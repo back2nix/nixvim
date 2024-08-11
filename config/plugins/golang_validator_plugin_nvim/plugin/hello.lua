@@ -1,5 +1,5 @@
 local function log(message)
-	local log_file = io.open(vim.fn.stdpath("data") .. "/golang_validator_plugin.log", "a")
+	local log_file = io.open(vim.fn.stdpath("data") .. "/golang_validator_plugin_nvim.log", "a")
 	if log_file then
 		log_file:write(os.date("%Y-%m-%d %H:%M:%S ") .. message .. "\n")
 		log_file:close()
@@ -11,11 +11,11 @@ local function ensure_job()
 		log("RPC server already running")
 		return vim.g.golang_validator_jobid
 	end
-	log("Attempting to start golang_validator_plugin RPC server")
+	log("Attempting to start golang_validator_plugin_nvim RPC server")
 
-	local plugin_path = vim.fn.exepath("golang_validator_plugin")
+	local plugin_path = vim.fn.exepath("golang_validator_plugin_nvim")
 	if plugin_path == "" then
-		log("golang_validator_plugin not found in PATH")
+		log("golang_validator_plugin_nvim not found in PATH")
 		return nil
 	end
 
@@ -24,20 +24,20 @@ local function ensure_job()
 		rpc = true,
 		on_stderr = function(_, data)
 			for _, line in ipairs(data) do
-				log("golang_validator_plugin stderr: " .. line)
+				log("golang_validator_plugin_nvim stderr: " .. line)
 			end
 		end,
 		on_exit = function(_, exit_code)
-			log("golang_validator_plugin exited with code: " .. exit_code)
+			log("golang_validator_plugin_nvim exited with code: " .. exit_code)
 			vim.g.golang_validator_jobid = nil
 		end,
 	})
 
 	if vim.g.golang_validator_jobid <= 0 then
-		log("Failed to start golang_validator_plugin RPC server. Error code: " .. vim.g.golang_validator_jobid)
+		log("Failed to start golang_validator_plugin_nvim RPC server. Error code: " .. vim.g.golang_validator_jobid)
 		return nil
 	end
-	log("Successfully started golang_validator_plugin RPC server")
+	log("Successfully started golang_validator_plugin_nvim RPC server")
 	return vim.g.golang_validator_jobid
 end
 
@@ -65,7 +65,7 @@ local function add_validator_tags()
 end
 
 local function setup()
-	log("Setting up golang_validator_plugin")
+	log("Setting up golang_validator_plugin_nvim")
 	ensure_job() -- Start the RPC server during setup
 end
 
@@ -78,4 +78,4 @@ vim.api.nvim_create_user_command("AddValidatorTags", function()
 	end
 end, {})
 
-log("golang_validator_plugin loaded successfully")
+log("golang_validator_plugin_nvim loaded successfully")

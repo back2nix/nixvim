@@ -10,7 +10,7 @@
     installPhase = ''
       mkdir -p $out/{bin,plugin}
       cp ${go_import_plugin}/bin/${go_import_plugin.pname} $out/bin/
-      cp ${go_import_plugin}/plugin/go_import_plugin.lua $out/plugin/go_import_plugin.lua
+      cp ${go_import_plugin}/plugin/hello.lua $out/plugin/hello.lua
     '';
   };
 in {

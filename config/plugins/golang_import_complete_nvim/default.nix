@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "go_import_plugin";
+  pname = "golang_import_complete_nvim";
   version = "0.1.0";
 
   src = ./.;
@@ -19,8 +19,8 @@ buildGoModule rec {
 
   installPhase = ''
     mkdir -p $out/{bin,plugin}
-    cp ${pname} $out/bin/${pname}
-    cp plugin/go_import_plugin.lua $out/plugin/go_import_plugin.lua
+    cp ${pname}  $out/bin/${pname}
+    cp plugin/hello.lua $out/plugin/hello.lua
   '';
 
   meta = with lib; {

@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "golang_validator_plugin";
+  pname = "go_import_plugin";
   version = "0.1.0";
 
   src = ./.;
@@ -11,7 +11,7 @@ buildGoModule rec {
   # vendorSha256 = lib.fakeSha256;
 
   # vendorHash = lib.fakeHash;
-  vendorHash = "sha256-d45oRvsuAzKBhFhyQPteb0GhnMO6jn2aZyf2k4X/weA=";
+  vendorHash = "sha256-/Bl4G5STa5lnNntZnMmt+BfES+N7ZYAwC9tzpuqUKcc=";
 
   buildPhase = ''
     go build -mod=vendor -o ${pname} main.go
@@ -20,7 +20,7 @@ buildGoModule rec {
   installPhase = ''
     mkdir -p $out/{bin,plugin}
     cp ${pname} $out/bin/${pname}
-    cp plugin/golang_validator_plugin.lua $out/plugin/golang_validator_plugin.lua
+    cp plugin/hello.lua $out/plugin/hello.lua
   '';
 
   meta = with lib; {
