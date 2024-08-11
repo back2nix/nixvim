@@ -9,42 +9,71 @@ import (
 	"github.com/back2nix/golang_arg_refactor_nvim/internal/operation"
 )
 
-func TestAddArgumentComplex(t *testing.T) {
-	// Create a temporary directory for test files
-	tempDir, err := ioutil.TempDir("", "addargument_complex_test")
+func TestAddArgumentVeryComplex(t *testing.T) {
+	tempDir, err := ioutil.TempDir("", "addargument_very_complex_test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}
 	defer os.RemoveAll(tempDir)
 
-	// Create test file
 	testFile := `package main
 
 import (
 	"fmt"
+	"sync"
 )
 
-func main() {
-	result := outerFunction(10, 20, z)
-	fmt.Println("Result:", result)
+type Calculator struct {
+	cache map[string]int
+	mu    sync.Mutex
 }
 
-func outerFunction(a, b int) int {
-	return middleFunction(a, b, func(x, y int) int {
-		return innerFunction(x, y)
-	})
+func NewCalculator() *Calculator {
+	return &Calculator{
+		cache: make(map[string]int),
+	}
 }
 
-func middleFunction(a, b int, operation func(int, int) int) int {
-	return operation(a, b)
+func (c *Calculator) Calculate(operation string, a, b int) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	key := fmt.Sprintf("%s:%d:%d", operation, a, b)
+	if result, ok := c.cache[key]; ok {
+		return result
+	}
+
+	var result int
+	switch operation {
+	case "add":
+		result = c.add(a, b)
+	case "multiply":
+		result = c.multiply(a, b)
+	default:
+          result = c.complexOperation(a, b, func(x, y int, z int) int {
+          }, z)
+	}
+
+	c.cache[key] = result
+	return result
 }
 
-func innerFunction(x, y int) int {
-	return add(x, y)
-}
-
-func add(x, y int, z int) int {
+func (c *Calculator) add(x, y int) int {
 	return x + y
+}
+
+func (c *Calculator) multiply(x, y int) int {
+	return x * y
+}
+
+func (c *Calculator) complexOperation(a, b int, op func(int, int) int) int {
+	return op(a, b)
+}
+
+func main() {
+	calc := NewCalculator()
+	result := calc.Calculate("add", 10, 20)
+	fmt.Println("Result:", result)
 }
 `
 
@@ -54,54 +83,74 @@ func add(x, y int, z int) int {
 		t.Fatalf("Failed to write test file: %v", err)
 	}
 
-	// Prepare the request
 	req := operation.AddArgumentRequest{
 		TargetFunc: "add",
 		ArgName:    "z",
 		ArgType:    "int",
-		MaxDepth:   5,
+		MaxDepth:   10,
 	}
 
-	// Run the AddArgument function
 	err = operation.AddArgument(req, []string{filePath})
 	if err != nil {
 		t.Fatalf("AddArgument failed: %v", err)
 	}
 
-	// Read the modified file
 	modifiedContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		t.Fatalf("Failed to read modified file: %v", err)
 	}
 
-	// Expected content after modification
 	expectedContent := `package main
 
 import (
 	"fmt"
+	"sync"
 )
 
-func main(z int) {
-	result := outerFunction(10, 20, z)
-	fmt.Println("Result:", result)
+type Calculator struct {
+	cache map[string]int
+	mu    sync.Mutex
 }
-func outerFunction(a, b int, z int) int {
-	return middleFunction(a, b, func(x, y int, z int) int {
-		return innerFunction(x, y, z)
-	}, z)
+
+func NewCalculator(z int) *Calculator {
+	return &Calculator{cache: make(map[string]int)}
 }
-func middleFunction(a, b int, operation func(int, int, z int) int, z int) int {
-	return operation(a, b, z)
+func (c *Calculator) Calculate(operation string, a, b int, z int) int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	key := fmt.Sprintf("%s:%d:%d", operation, a, b)
+	if result, ok := c.cache[key]; ok {
+		return result
+	}
+	var result int
+	switch operation {
+	case "add":
+		result = c.add(a, b, z)
+	case "multiply":
+		result = c.multiply(a, b, z)
+	default:
+		result = c.complexOperation(a, b, func(x, y int, z int) int {
+		}, z)
+	}
+	c.cache[key] = result
+	return result
 }
-func innerFunction(x, y int, z int) int {
-	return add(x, y, z)
-}
-func add(x, y int, z int) int {
+func (c *Calculator) add(x, y int, z int) int {
 	return x + y
+}
+func (c *Calculator) multiply(x, y int, z int) int {
+	return x * y
+}
+func (c *Calculator) complexOperation(a, b int, op func(int, int, z int) int, z int) int {
+	return op(a, b, z)
+}
+func main(z int) {
+	calc := NewCalculator(z)
+	result := calc.Calculate("add", 10, 20, z)
+	fmt.Println("Result:", result)
 }
 `
 
-	// Compare modified content with expected content
 	if string(modifiedContent) != expectedContent {
 		t.Errorf("Modified content does not match expected content.\nGot:\n%s\nWant:\n%s",
 			string(modifiedContent),
