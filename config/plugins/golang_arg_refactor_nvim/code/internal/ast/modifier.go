@@ -32,22 +32,38 @@ func ModifyFunction(file *ast.File, funcName string, argName string, argType str
 	return nil
 }
 
-func addArgumentToFunction(fn *ast.FuncDecl, argName, argType string) {
-	newField := &ast.Field{
-		Names: []*ast.Ident{ast.NewIdent(argName)},
-		Type:  ast.NewIdent(argType),
-	}
-
-	for _, field := range fn.Type.Params.List {
-		for _, name := range field.Names {
-			if name.Name == argName {
-				return // Argument already exists
+func updateFuncType(funcType *ast.FuncType, argName, argType string, isAdding bool) {
+	if isAdding {
+		// Проверяем, существует ли уже аргумент
+		for _, field := range funcType.Params.List {
+			for _, name := range field.Names {
+				if name.Name == argName {
+					return // Аргумент уже существует
+				}
+			}
+			// Проверяем и обновляем вложенные функциональные типы
+			if fType, ok := field.Type.(*ast.FuncType); ok {
+				updateFuncType(fType, argName, argType, isAdding)
+			}
+		}
+		newField := &ast.Field{
+			Names: []*ast.Ident{ast.NewIdent(argName)},
+			Type:  ast.NewIdent(argType),
+		}
+		funcType.Params.List = append(funcType.Params.List, newField)
+	} else {
+		// Логика удаления остается прежней, но добавляем рекурсивное обновление
+		for _, field := range funcType.Params.List {
+			if fType, ok := field.Type.(*ast.FuncType); ok {
+				updateFuncType(fType, argName, argType, isAdding)
 			}
 		}
 	}
+}
 
-	fn.Type.Params.List = append(fn.Type.Params.List, newField)
-	updateFunctionBody(fn.Body, argName)
+func addArgumentToFunction(fn *ast.FuncDecl, argName, argType string) {
+	updateFuncType(fn.Type, argName, argType, true)
+	updateFunctionBody(fn.Body, argName, argType)
 }
 
 func removeArgumentFromFunction(fn *ast.FuncDecl, argName string) {
@@ -79,7 +95,7 @@ func addArgumentToFuncLit(fn *ast.FuncLit, argName, argType string) {
 	}
 
 	fn.Type.Params.List = append(fn.Type.Params.List, newField)
-	updateFunctionBody(fn.Body, argName)
+	updateFunctionBody(fn.Body, argName, argType)
 }
 
 func removeArgumentFromFuncLit(fn *ast.FuncLit, argName string) {
@@ -96,11 +112,11 @@ func removeArgumentFromFuncLit(fn *ast.FuncLit, argName string) {
 	}
 }
 
-func updateFunctionBody(body *ast.BlockStmt, argName string) {
+func updateFunctionBody(body *ast.BlockStmt, argName string, argType string) {
 	ast.Inspect(body, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.CallExpr:
-			updateCall(node, argName, true)
+			updateCall(node, argName, argType, true)
 		}
 		return true
 	})
@@ -110,43 +126,54 @@ func UpdateFunctionCalls(file *ast.File, argName string, argType string, isAddin
 	ast.Inspect(file, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.CallExpr:
-			updateCall(node, argName, isAdding)
+			updateCall(node, argName, argType, isAdding)
 		case *ast.FuncLit:
-			if isAdding {
-				addArgumentToFuncLit(node, argName, argType)
-			} else {
-				removeArgumentFromFuncLit(node, argName)
-			}
+			updateFuncType(node.Type, argName, argType, isAdding)
 		}
 		return true
 	})
 }
 
-func updateCall(call *ast.CallExpr, argName string, isAdding bool) {
-	if isAdding {
-		for _, arg := range call.Args {
-			if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
-				return // Argument already exists in the call
+func updateCall(call *ast.CallExpr, argName string, argType string, isAdding bool) {
+	if shouldUpdateCall(call) {
+		if isAdding {
+			// Проверяем, существует ли уже аргумент
+			for _, arg := range call.Args {
+				if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
+					return // Аргумент уже существует в вызове
+				}
 			}
-		}
-		call.Args = append(call.Args, &ast.Ident{Name: argName})
-	} else {
-		for i, arg := range call.Args {
-			if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
-				call.Args = append(call.Args[:i], call.Args[i+1:]...)
-				break
+			call.Args = append(call.Args, &ast.Ident{Name: argName})
+		} else {
+			for i, arg := range call.Args {
+				if ident, ok := arg.(*ast.Ident); ok && ident.Name == argName {
+					call.Args = append(call.Args[:i], call.Args[i+1:]...)
+					break
+				}
 			}
 		}
 	}
 
-	// Update function types in arguments
-	for _, arg := range call.Args {
-		if funcLit, ok := arg.(*ast.FuncLit); ok {
-			if isAdding {
-				addArgumentToFuncLit(funcLit, argName, "int") // Assuming int type for simplicity
-			} else {
-				removeArgumentFromFuncLit(funcLit, argName)
+	// Обновляем типы функциональных аргументов
+	for i, arg := range call.Args {
+		switch argNode := arg.(type) {
+		case *ast.FuncLit:
+			updateFuncType(argNode.Type, argName, argType, isAdding)
+		case *ast.Ident:
+			if argNode.Obj != nil && argNode.Obj.Decl != nil {
+				switch decl := argNode.Obj.Decl.(type) {
+				case *ast.FuncDecl:
+					updateFuncType(decl.Type, argName, argType, isAdding)
+				case *ast.Field:
+					if funcType, ok := decl.Type.(*ast.FuncType); ok {
+						updateFuncType(funcType, argName, argType, isAdding)
+					}
+				}
 			}
+		}
+		// Обновляем тип аргумента в вызове, если это функциональный тип
+		if funcType, ok := call.Args[i].(*ast.FuncLit); ok {
+			updateFuncType(funcType.Type, argName, argType, isAdding)
 		}
 	}
 }
@@ -162,4 +189,14 @@ func WriteModifiedAST(file *ast.File, filename string) error {
 	}
 
 	return nil
+}
+
+func shouldUpdateCall(call *ast.CallExpr) bool {
+	if selExpr, ok := call.Fun.(*ast.SelectorExpr); ok {
+		if ident, ok := selExpr.X.(*ast.Ident); ok {
+			// Не обновляем вызовы fmt.Println и подобные
+			return ident.Name != "fmt"
+		}
+	}
+	return true
 }

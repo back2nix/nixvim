@@ -81,22 +81,22 @@ import (
 	"fmt"
 )
 
-func main() {
+func main(z int) {
 	result := outerFunction(10, 20, z)
 	fmt.Println("Result:", result)
 }
-func outerFunction(a, b, z int) int {
-	return middleFunction(a, b, z, func(x, y int, z int) int {
+func outerFunction(a, b int, z int) int {
+	return middleFunction(a, b, func(x, y int, z int) int {
 		return innerFunction(x, y, z)
-	})
+	}, z)
 }
-func middleFunction(a, b, z int, operation func(int, int, int) int) int {
+func middleFunction(a, b int, operation func(int, int, z int) int, z int) int {
 	return operation(a, b, z)
 }
-func innerFunction(x, y, z int) int {
+func innerFunction(x, y int, z int) int {
 	return add(x, y, z)
 }
-func add(x, y, z int) int {
+func add(x, y int, z int) int {
 	return x + y
 }
 `
