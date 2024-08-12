@@ -76,7 +76,24 @@ func addImport(v *nvim.Nvim, args []string) (string, error) {
 		return "", fmt.Errorf("insufficient arguments: need word and project root")
 	}
 	word := args[0]
-	projectRoot := args[1]
+
+	// Получаем текущий буфер
+	buf, err := v.CurrentBuffer()
+	if err != nil {
+		return "", fmt.Errorf("ошибка при получении текущего буфера: %v", err)
+	}
+
+	// Получаем имя файла для текущего буфера
+	filename, err := v.BufferName(buf)
+	if err != nil {
+		return "", fmt.Errorf("ошибка при получении имени файла: %v", err)
+	}
+
+	// Определяем корень проекта
+	projectRoot := findProjectRoot(filepath.Dir(filename))
+	if projectRoot == "" {
+		return "", fmt.Errorf("не удалось определить корень проекта для файла %s", filename)
+	}
 
 	// Find all aliases in the project
 	aliases, err := findAliases(projectRoot)
@@ -156,4 +173,20 @@ func addImport(v *nvim.Nvim, args []string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func findProjectRoot(dir string) string {
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
 }
