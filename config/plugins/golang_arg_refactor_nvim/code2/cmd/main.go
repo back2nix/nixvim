@@ -73,10 +73,12 @@ func (mc *MainCoordinator) AddArgumentToFunction(filePath, targetFunc, paramName
 	// Step 4: Set up the call expression modifier with the functions to modify
 	mc.callExprMod = modifier.NewCallExprModifier(functionsToModify)
 
-	fmt.Println(mc.callExprMod)
+	fmt.Println("Step 4:", mc.callExprMod)
 
 	// Step 5: Set up the traverser
 	mc.traverser = traverser.NewASTTraverser(mc.parser, mc.funcDeclMod, mc.funcLitMod, mc.callExprMod)
+
+	fmt.Println("Step 5:", mc.traverser)
 
 	// Step 6: Traverse and modify the AST
 	err = mc.traverseAndModifyAST(file, functionsToModify, paramName, paramType)

@@ -130,6 +130,3 @@ func (fm *FileManager) CreateFile(filePath string, content []byte) error
 func (fm *FileManager) FileExists(filePath string) bool
 func (fm *FileManager) GetGoFiles(dirPath string) ([]string, error)
 ```
-
-Думаю нужно написать тест для pkg/traverser/traverser.go который будет проверять что она изменяет аргументы во всех функция по цепочке
-и тест не должен быть моком он должен быть настоящим
