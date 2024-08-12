@@ -52,7 +52,7 @@ vim.api.nvim_create_user_command("AddImport", function(args)
 	local word = vim.fn.expand("<cword>")
 	log("Attempting to add import for word: " .. word)
 	local cwd = vim.fn.getcwd()
-	vim.notify("hello world", vim.log.levels.INFO)
+	-- vim.notify("hello world", vim.log.levels.INFO)
 	local result, err = vim.fn.rpcrequest(ensure_job(), "addImport", { word, cwd })
 	if err then
 		log("Error adding import: " .. tostring(err))
