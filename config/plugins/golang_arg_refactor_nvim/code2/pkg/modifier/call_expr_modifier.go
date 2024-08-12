@@ -67,7 +67,6 @@ func (m *CallExprModifier) AddArgument(callExpr *ast.CallExpr, argName string) e
 // modifyCallExpr applies the modification to a single CallExpr
 func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr, argName string) {
 	funcName, ok := extractFuncName(callExpr)
-	fmt.Printf("Extracted function name: %s, ok: %v\n", funcName, ok)
 
 	if !ok {
 		fmt.Println("Cannot modify this call: unable to extract function name")
@@ -79,7 +78,6 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr, argName string
 	shortFuncName := parts[len(parts)-1]
 
 	if _, shouldModify := m.functionsToModify[shortFuncName]; !shouldModify {
-		fmt.Printf("Function %s (short name: %s) is not in the list to modify\n", funcName, shortFuncName)
 		return
 	}
 
@@ -90,14 +88,12 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr, argName string
 
 	// Check if the function has already been modified
 	if len(callExpr.Args) > m.initialArgCounts[shortFuncName] {
-		fmt.Printf("Function %s (short name: %s) has already been modified\n", funcName, shortFuncName)
 		return // Already modified, no need to add argument again
 	}
 
 	// Add the new argument
 	newArg := &ast.Ident{Name: argName}
 	callExpr.Args = append(callExpr.Args, newArg)
-	fmt.Printf("Added argument '%s' to function %s (short name: %s)\n", argName, funcName, shortFuncName)
 }
 
 // Вспомогательная функция для преобразования AST в строку
