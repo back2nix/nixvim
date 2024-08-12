@@ -155,5 +155,5 @@ func addImport(v *nvim.Nvim, args []string) (string, error) {
 		}
 	}
 
-	return "fuck", nil
+	return "", nil
 }
