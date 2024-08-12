@@ -3,7 +3,7 @@
   buildGoModule,
 }:
 buildGoModule rec {
-  pname = "go_import_plugin";
+  pname = "golang_import_plugin_nvim";
   version = "0.1.0";
 
   src = ./.;

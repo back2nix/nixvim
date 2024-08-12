@@ -1,24 +1,24 @@
 {pkgs, ...}: let
-  go_import_plugin = pkgs.callPackage ./default.nix {};
+  golang_import_plugin_nvim = pkgs.callPackage ./default.nix {};
 
-  go_import_plugin-nvim = pkgs.vimUtils.buildVimPlugin {
-    pname = go_import_plugin.pname;
-    version = go_import_plugin.version;
-    src = go_import_plugin;
+  golang_import_plugin_nvim-nvim = pkgs.vimUtils.buildVimPlugin {
+    pname = golang_import_plugin_nvim.pname;
+    version = golang_import_plugin_nvim.version;
+    src = golang_import_plugin_nvim;
 
     buildPhase = ":";
     installPhase = ''
       mkdir -p $out/{bin,plugin}
-      cp ${go_import_plugin}/bin/${go_import_plugin.pname} $out/bin/
-      cp ${go_import_plugin}/plugin/hello.lua $out/plugin/hello.lua
+      cp ${golang_import_plugin_nvim}/bin/${golang_import_plugin_nvim.pname} $out/bin/
+      cp ${golang_import_plugin_nvim}/plugin/hello.lua $out/plugin/hello.lua
     '';
   };
 in {
-  extraPlugins = [go_import_plugin-nvim];
-  extraPackages = [go_import_plugin];
+  extraPlugins = [golang_import_plugin_nvim-nvim];
+  extraPackages = [golang_import_plugin_nvim];
 
   extraConfigLua = ''
-    vim.env.PATH = vim.env.PATH .. ':' .. vim.fn.stdpath('data') .. '/plugged/go_import_plugin/bin'
+    vim.env.PATH = vim.env.PATH .. ':' .. vim.fn.stdpath('data') .. '/plugged/golang_import_plugin_nvim/bin'
   '';
 
   keymaps = [

@@ -27,7 +27,7 @@ in {
       key = "<leader>mv";
       action = ":AddValidatorTags<CR>";
       options = {
-        desc = "Add import for word under cursor";
+        desc = "Add validator tag";
         silent = true;
       };
     }
