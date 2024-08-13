@@ -13,5 +13,7 @@ type IFuncLitModifier interface {
 }
 
 type ICallExprModifier interface {
-	AddArgument(callExpr *ast.CallExpr, argName string) error
+	AddArgument(node ast.Node, argName string) error
+	ShouldModifyFunction(funcName string) bool
+	UpdateFunctionDeclarations(file *ast.File, paramName, paramType string, funcDeclMod *FuncDeclModifier) error
 }

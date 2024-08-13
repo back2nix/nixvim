@@ -40,18 +40,21 @@ type MainCoordinator struct {
 }
 
 func NewMainCoordinator() *MainCoordinator {
+	fset := token.NewFileSet()
 	return &MainCoordinator{
 		analyzer:    analyzer.NewCallChainAnalyzer(),
 		parser:      parser.NewParser(),
 		fileManager: filemanager.NewFileManager(),
 		funcDeclMod: modifier.NewFuncDeclModifier(),
 		funcLitMod:  modifier.NewFuncLitModifier(),
-		callExprMod: modifier.NewCallExprModifier(nil), // We'll set this later
-		fset:        token.NewFileSet(),                // Initialize the FileSet
+		callExprMod: modifier.NewCallExprModifier(nil, fset), // Passing nil for now, we'll set it later
+		fset:        fset,
 	}
 }
 
 func (mc *MainCoordinator) AddArgumentToFunction(filePath, targetFunc, paramName, paramType string) error {
+	log.Printf("Starting AddArgumentToFunction for %s in %s", targetFunc, filePath)
+
 	// Step 1: Read the file
 	src, err := mc.readFile(filePath)
 	if err != nil {
@@ -63,6 +66,7 @@ func (mc *MainCoordinator) AddArgumentToFunction(filePath, targetFunc, paramName
 	if err != nil {
 		return fmt.Errorf("failed to analyze call chain: %w", err)
 	}
+	log.Printf("Functions to modify: %v", functionsToModify)
 
 	// Step 3: Parse the AST
 	file, err := mc.parseAST(src)
@@ -71,7 +75,7 @@ func (mc *MainCoordinator) AddArgumentToFunction(filePath, targetFunc, paramName
 	}
 
 	// Step 4: Set up the call expression modifier with the functions to modify
-	mc.callExprMod = modifier.NewCallExprModifier(functionsToModify)
+	mc.callExprMod = modifier.NewCallExprModifier(functionsToModify, mc.fset)
 
 	fmt.Println("Step 4:", mc.callExprMod)
 
