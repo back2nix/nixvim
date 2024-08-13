@@ -11,9 +11,7 @@ type Calculator struct {
 }
 
 func NewCalculator() *Calculator {
-	return &Calculator{
-		cache: make(map[string]int),
-	}
+	return &Calculator{cache: make(map[string]int)}
 }
 
 func (c *Calculator) Calculate(operation string, a, b int) int {
@@ -54,24 +52,15 @@ func (c *Calculator) multiply(x, y int) int {
 	return x * y
 }
 
-func (c *Calculator) complex1(
-	a, b int,
-	op func(int, int) int,
-) int {
+func (c *Calculator) complex1(a, b int, op func(int, int) int) int {
 	return op(a, b)
 }
 
-func (c *Calculator) complex2(
-	a, b int,
-	op func(int, int) int,
-) int {
+func (c *Calculator) complex2(a, b int, op func(int, int) int) int {
 	return c.add(a, b)
 }
 
-func (c *Calculator) complex3(
-	a, b int,
-	op func(int, int) int,
-) int {
+func (c *Calculator) complex3(a, b int, op func(int, int) int) int {
 	return op(a, b)
 }
 

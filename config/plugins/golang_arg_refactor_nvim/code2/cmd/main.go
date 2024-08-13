@@ -17,14 +17,31 @@ import (
 
 func main() {
 	coordinator := NewMainCoordinator()
-	err := coordinator.AddArgumentToFunction(
-		"/home/bg/Documents/code/github.com/back2nix/nix/nixvim/config/plugins/golang_arg_refactor_nvim/code/main.go",
+	functions := []string{
 		"add",
-		"what",
-		"string",
-	)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
+		"multiply",
+		"nonemae1",
+		"nonemae2",
+		"nonemae3",
+		// "complex1",
+		// "complex2",
+		// "complex3",
+	}
+
+	argCounter := 1
+
+	for _, funcName := range functions {
+		argName := fmt.Sprintf("a%d", argCounter)
+		err := coordinator.AddArgumentToFunction(
+			"../code/main.go",
+			funcName,
+			argName,
+			"int",
+		)
+		if err != nil {
+			log.Fatalf("Error adding argument to %s: %v", funcName, err)
+		}
+		argCounter++
 	}
 }
 
