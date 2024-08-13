@@ -19,10 +19,10 @@ func main() {
 	coordinator := NewMainCoordinator()
 	functions := []string{
 		"add",
-		"multiply",
-		"nonemae1",
-		"nonemae2",
-		"nonemae3",
+		// "multiply",
+		// "nonemae1",
+		// "nonemae2",
+		// "nonemae3",
 		// "complex1",
 		// "complex2",
 		// "complex3",
@@ -53,7 +53,7 @@ type MainCoordinator struct {
 	funcDeclMod modifier.IFuncDeclModifier
 	funcLitMod  modifier.IFuncLitModifier
 	callExprMod modifier.ICallExprModifier
-	fset        *token.FileSet // Add this field
+	fset        *token.FileSet
 }
 
 func NewMainCoordinator() *MainCoordinator {
@@ -64,7 +64,7 @@ func NewMainCoordinator() *MainCoordinator {
 		fileManager: filemanager.NewFileManager(),
 		funcDeclMod: modifier.NewFuncDeclModifier(),
 		funcLitMod:  modifier.NewFuncLitModifier(),
-		callExprMod: modifier.NewCallExprModifier(nil, fset), // Passing nil for now, we'll set it later
+		callExprMod: modifier.NewCallExprModifier(nil, fset),
 		fset:        fset,
 	}
 }
@@ -94,12 +94,13 @@ func (mc *MainCoordinator) AddArgumentToFunction(filePath, targetFunc, paramName
 	// Step 4: Set up the call expression modifier with the functions to modify
 	mc.callExprMod = modifier.NewCallExprModifier(functionsToModify, mc.fset)
 
-	fmt.Println("Step 4:", mc.callExprMod)
-
 	// Step 5: Set up the traverser
-	mc.traverser = traverser.NewASTTraverser(mc.parser, mc.funcDeclMod, mc.funcLitMod, mc.callExprMod)
-
-	fmt.Println("Step 5:", mc.traverser)
+	mc.traverser = traverser.NewASTTraverser(
+		mc.parser,
+		mc.funcDeclMod.(*modifier.FuncDeclModifier),
+		mc.funcLitMod.(*modifier.FuncLitModifier),
+		mc.callExprMod.(*modifier.CallExprModifier),
+	)
 
 	// Step 6: Traverse and modify the AST
 	err = mc.traverseAndModifyAST(file, functionsToModify, paramName, paramType)

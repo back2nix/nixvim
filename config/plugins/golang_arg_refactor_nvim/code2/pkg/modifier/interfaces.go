@@ -9,7 +9,7 @@ type IFuncDeclModifier interface {
 }
 
 type IFuncLitModifier interface {
-	AddParameter(funcLit *ast.FuncLit, paramName, paramType string) error
+	AddParameter(funcLit *ast.FuncLit, paramName, paramType string, parentFuncName string) error
 }
 
 type ICallExprModifier interface {

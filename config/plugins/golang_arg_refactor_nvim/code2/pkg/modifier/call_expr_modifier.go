@@ -29,7 +29,6 @@ func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallE
 }
 
 func (m *CallExprModifier) AddArgument(node ast.Node, argName string) error {
-	log.Printf("AddArgument called with argName: %s", argName)
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.CallExpr:
@@ -56,7 +55,6 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr, argName string
 		log.Printf("Could not extract function name from CallExpr: %v", callExpr)
 		return
 	}
-	log.Printf("Checking CallExpr for function: %s", funcName)
 
 	shortFuncName := m.getShortFuncName(funcName)
 
