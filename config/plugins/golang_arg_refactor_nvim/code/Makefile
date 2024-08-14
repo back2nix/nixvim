@@ -1,10 +1,24 @@
-run/test:
-	go test -v ./internal/operation
+test/all: test/analyzer test/parser test/traverser test/main
 
-run/TestASTModifier:
-	go test -run TestASTModifier ./internal/ast
-	go test -run TestGetAllGoFiles ./internal/analysis
-	go test -run TestAnalyzeCallChain ./internal/analysis
-	go test -run TestAnalyzeCallChainWithRecursion ./internal/analysis
-	go test -run TestImprovedAnalyzeCallChain ./internal/analysis
+test/analyzer:
+	go test -v -run TestAnalyzeCallChain ./pkg/analyzer/
 
+test/parser:
+	go test -v -run TestParse ./pkg/parser/
+	go test -v -run TestGetFuncDecl ./pkg/parser/
+	go test -v -run TestGetFuncLitInFunc ./pkg/parser/
+	go test -v -run TestGetFuncLitInFunc ./pkg/parser/
+
+test/modifier:
+	# go test -v -run TestFuncDeclModifier_AddParameter ./pkg/modifier/
+	# go test -v -run TestFuncLitModifier_AddParameter ./pkg/modifier/
+	go test -v -run TestCallExprModifier_AddArgument ./pkg/modifier/
+
+test/traverser:
+	go test -v -run TestASTTraverser ./pkg/traverser/
+
+test/filemanager:
+	go test -v -run TestFileManager ./pkg/filemanager
+
+test/main:
+	go test -v -run NewMainCoordinator ./cmd
