@@ -5,7 +5,8 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"log"
+
+	"github.com/back2nix/go-arg-propagation/pkg/logger"
 )
 
 type CallChainAnalyzer struct {
@@ -23,7 +24,7 @@ func NewCallChainAnalyzer(fset *token.FileSet) *CallChainAnalyzer {
 }
 
 func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]string, error) {
-	log.Printf("Starting analysis for target function: %s", targetFunc)
+	logger.Log.DebugPrintf("Starting analysis for target function: %s", targetFunc)
 
 	file, err := parser.ParseFile(a.fset, "", src, parser.AllErrors)
 	if err != nil {
@@ -37,7 +38,7 @@ func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]s
 		chain = chain[1:]
 	}
 
-	log.Printf("Call chain for %s: %v", targetFunc, chain)
+	logger.Log.DebugPrintf("Call chain for %s: %v", targetFunc, chain)
 	return chain, nil
 }
 
@@ -52,18 +53,18 @@ func (a *CallChainAnalyzer) buildCallGraph(file *ast.File) {
 		switch x := n.(type) {
 		case *ast.FuncDecl:
 			currentFunc = x.Name.Name
-			log.Printf("Analyzing function: %s", currentFunc)
+			logger.Log.DebugPrintf("Analyzing function: %s", currentFunc)
 			a.analyzeFuncBody(currentFunc, x.Body)
 		case *ast.FuncLit:
 			anonName := a.getAnonymousFuncName(x)
 			a.anonFuncs[anonName] = currentFunc
-			log.Printf("Analyzing anonymous function in %s: %s", currentFunc, anonName)
+			logger.Log.DebugPrintf("Analyzing anonymous function in %s: %s", currentFunc, anonName)
 			a.analyzeFuncBody(anonName, x.Body)
 		}
 		return true
 	})
-	log.Printf("Call graph: %v", a.callGraph)
-	log.Printf("Anonymous functions: %v", a.anonFuncs)
+	logger.Log.DebugPrintf("Call graph: %v", a.callGraph)
+	logger.Log.DebugPrintf("Anonymous functions: %v", a.anonFuncs)
 }
 
 func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt) {
@@ -76,17 +77,17 @@ func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt
 			case *ast.Ident:
 				callee := fun.Name
 				a.callGraph[funcName] = append(a.callGraph[funcName], callee)
-				log.Printf("Found call from %s to %s", funcName, callee)
+				logger.Log.DebugPrintf("Found call from %s to %s", funcName, callee)
 			case *ast.SelectorExpr:
 				if x, ok := fun.X.(*ast.Ident); ok {
 					callee := fmt.Sprintf("%s.%s", x.Name, fun.Sel.Name)
 					a.callGraph[funcName] = append(a.callGraph[funcName], callee)
-					log.Printf("Found call from %s to %s", funcName, callee)
+					logger.Log.DebugPrintf("Found call from %s to %s", funcName, callee)
 				}
 			case *ast.FuncLit:
 				anonName := a.getAnonymousFuncName(fun)
 				a.callGraph[funcName] = append(a.callGraph[funcName], anonName)
-				log.Printf("Found call to anonymous function from %s: %s", funcName, anonName)
+				logger.Log.DebugPrintf("Found call to anonymous function from %s: %s", funcName, anonName)
 			}
 		}
 		return true

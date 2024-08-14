@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"go/ast"
 	"go/token"
-	"log"
 	"strings"
+
+	"github.com/back2nix/go-arg-propagation/pkg/logger"
 )
 
 type CallExprModifier struct {
@@ -57,7 +58,7 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 		return
 	}
 
-	log.Printf("Modified anonymous function: %s", funcName)
+	logger.Log.DebugPrintf("Modified anonymous function: %s", funcName)
 
 	hasArg := false
 	for _, field := range funcLit.Type.Params.List {
@@ -78,7 +79,7 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 			Type:  ast.NewIdent("string"),
 		}
 		funcLit.Type.Params.List = append(funcLit.Type.Params.List, newParam)
-		log.Printf("Modified anonymous function: %s", funcName)
+		logger.Log.DebugPrintf("Modified anonymous function: %s", funcName)
 	}
 
 	m.markAsModified(funcName)
@@ -111,7 +112,7 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr) {
 		if len(callExpr.Args) < expectedArgCount {
 			newArg := &ast.Ident{Name: m.newArgName}
 			callExpr.Args = append(callExpr.Args, newArg)
-			log.Printf("Modified function call: %s", shortFuncName)
+			logger.Log.DebugPrintf("Modified function call: %s", shortFuncName)
 		}
 	}
 
