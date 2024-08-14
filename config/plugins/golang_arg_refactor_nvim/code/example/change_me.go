@@ -57,6 +57,9 @@ func complexFunction(x int, s string) string {
 			untouchedFunction()
 		}()
 	}()
+
+	untouchedFunction()
+
 	if x > 10 {
 		for i := 0; i < 3; i++ {
 			s += string(rune(x + i))
