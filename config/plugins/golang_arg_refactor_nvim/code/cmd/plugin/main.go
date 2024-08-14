@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,61 +12,79 @@ import (
 	"github.com/back2nix/go-arg-propagation/pkg/coordinator"
 )
 
+type Result struct {
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Error   string `json:"error,omitempty"`
+}
+
 func addArgument(v *nvim.Nvim, args []string) (string, error) {
 	if len(args) != 2 {
-		return "", v.WriteErr("Usage: AddArgument <arg_name> <arg_type>")
+		return encodeResult(false, "", "Usage: AddArgument <arg_name> <arg_type>")
 	}
-
 	argName := args[0]
 	argType := args[1]
 
-	// Get current buffer
 	buffer, err := v.CurrentBuffer()
 	if err != nil {
-		return "1", fmt.Errorf("failed to get current buffer: %v", err)
+		return encodeResult(false, "", fmt.Sprintf("Failed to get current buffer: %v", err))
 	}
 
-	// Get cursor position
 	window, err := v.CurrentWindow()
 	if err != nil {
-		return "2", fmt.Errorf("failed to get current window: %v", err)
-	}
-	cursor, err := v.WindowCursor(window)
-	if err != nil {
-		return "3", fmt.Errorf("failed to get cursor position: %v", err)
+		return encodeResult(false, "", fmt.Sprintf("Failed to get current window: %v", err))
 	}
 
-	// Get current line
+	cursor, err := v.WindowCursor(window)
+	if err != nil {
+		return encodeResult(false, "", fmt.Sprintf("Failed to get cursor position: %v", err))
+	}
+
 	lines, err := v.BufferLines(buffer, cursor[0]-1, cursor[0], true)
 	if err != nil || len(lines) == 0 {
-		return "4", fmt.Errorf("failed to get current line: %v", err)
+		return encodeResult(false, "", fmt.Sprintf("Failed to get current line: %v", err))
 	}
 	line := string(lines[0])
 
-	// Extract word under cursor
 	funcName := extractFunctionName(line, cursor[1])
 	if funcName == "" {
-		return "5", v.WriteErr("Couldn't find word under cursor")
+		return encodeResult(false, "", "Couldn't find word under cursor")
 	}
 
-	// Get file path
 	bufferName, err := v.BufferName(buffer)
 	if err != nil {
-		return "6", fmt.Errorf("failed to get buffer name: %v", err)
+		return encodeResult(false, "", fmt.Sprintf("Failed to get buffer name: %v", err))
 	}
 
-	// Use the coordinator to add the argument
 	coordinator := coordinator.NewMainCoordinator()
 	err = coordinator.AddArgumentToFunction(bufferName, funcName, argName, argType)
 	if err != nil {
-		return "7", v.WriteErr(fmt.Sprintf("Error adding argument: %v", err))
+		return encodeResult(false, "", fmt.Sprintf("Error adding argument: %v", err))
 	}
 
-	return funcName + " " + argName + " " + argType, nil
+	// Обновляем буфер
+	if err := v.Command("edit!"); err != nil {
+		return encodeResult(false, "", fmt.Sprintf("Failed to refresh buffer: %v", err))
+	}
 
-	return "", v.WriteOut(
-		fmt.Sprintf("Successfully added argument '%s' of type '%s' to function '%s'\n", argName, argType, funcName),
+	return encodeResult(
+		true,
+		fmt.Sprintf("Successfully added argument '%s' of type '%s' to function '%s'", argName, argType, funcName),
+		"",
 	)
+}
+
+func encodeResult(success bool, message, errMsg string) (string, error) {
+	result := Result{
+		Success: success,
+		Message: message,
+		Error:   errMsg,
+	}
+	jsonResult, err := json.Marshal(result)
+	if err != nil {
+		return "", fmt.Errorf("failed to encode result: %v", err)
+	}
+	return string(jsonResult), nil
 }
 
 func extractFunctionName(line string, cursorColumn int) string {

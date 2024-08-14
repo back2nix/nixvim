@@ -50,20 +50,32 @@ vim.api.nvim_create_user_command("AddArgument", function()
 			print("Input must be non-empty")
 			return
 		end
-
 		local arg_name, arg_type = input:match("(%S+)%s+(%S+)")
 		if not arg_name or not arg_type then
 			print("Invalid input format. Please provide both argument name and type.")
 			return
 		end
 
-		local result, err = vim.fn.rpcrequest(ensure_job(), "addArgument", { arg_name, arg_type })
+		local json_result, err = vim.fn.rpcrequest(ensure_job(), "addArgument", { arg_name, arg_type })
 		if err then
 			log("Error adding argument: " .. tostring(err))
 			vim.notify("Error adding argument: " .. tostring(err), vim.log.levels.ERROR)
+			return
+		end
+
+		local success, result = pcall(vim.fn.json_decode, json_result)
+		if not success then
+			log("Error decoding JSON result: " .. tostring(result))
+			vim.notify("Error decoding result", vim.log.levels.ERROR)
+			return
+		end
+
+		if result.success then
+			log("Argument added successfully: " .. result.message)
+			vim.notify(result.message, vim.log.levels.INFO)
 		else
-			log("Argument added successfully")
-			vim.notify("Argument added successfully " .. result, vim.log.levels.INFO)
+			log("Error adding argument: " .. (result.error or "Unknown error"))
+			vim.notify(result.error or "Unknown error", vim.log.levels.ERROR)
 		end
 	end)
 end, {})
