@@ -16,6 +16,7 @@ type CallExprModifier struct {
 	anonymousFuncCount map[token.Pos]bool
 	fset               *token.FileSet
 	newArgName         string
+	newArgType         string
 }
 
 func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallExprModifier {
@@ -34,8 +35,9 @@ func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallE
 	}
 }
 
-func (m *CallExprModifier) AddArgument(node ast.Node, argName string) error {
+func (m *CallExprModifier) AddArgument(node ast.Node, argName, argType string) error {
 	m.newArgName = argName
+	m.newArgType = argType
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.FuncLit:
@@ -76,7 +78,7 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 	if !hasArg {
 		newParam := &ast.Field{
 			Names: []*ast.Ident{ast.NewIdent(m.newArgName)},
-			Type:  ast.NewIdent("string"),
+			Type:  ast.NewIdent(m.newArgType),
 		}
 		funcLit.Type.Params.List = append(funcLit.Type.Params.List, newParam)
 		logger.Log.DebugPrintf("Modified anonymous function: %s", funcName)

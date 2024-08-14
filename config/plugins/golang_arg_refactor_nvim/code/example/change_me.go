@@ -19,15 +19,15 @@ func (dm *DataManager) Process(data string) (string, error) {
 var GlobalVariable = "Do not modify this"
 
 func main() {
-	func(arg string,) {
-		func(arg string,) {
-			result := complexFunction(42, "test", arg)
+	func() {
+		func() {
+			result := complexFunction(42, "test")
 			fmt.Println(result)
-		}(arg)
-	}(arg)
+		}()
+	}()
 }
 
-func complexFunction(x int, s string, arg int,) string {
+func complexFunction(x int, s string) string {
 	dm := &DataManager{data: s}
 	defer func() {
 		if r := recover(); r != nil {
@@ -52,11 +52,11 @@ func complexFunction(x int, s string, arg int,) string {
 		defer wg.Done()
 		fmt.Println("Goroutine executed")
 	}()
-	func(arg string,) {
-		func(arg string,) {
-			untouchedFunction(arg)
-		}(arg)
-	}(arg)
+	func() {
+		func() {
+			untouchedFunction()
+		}()
+	}()
 	if x > 10 {
 		for i := 0; i < 3; i++ {
 			s += string(rune(x + i))
@@ -78,7 +78,7 @@ func processData(p Processor, data string) (string, error) {
 	return p.Process(data)
 }
 
-func untouchedFunction(arg int,) {
+func untouchedFunction() {
 	fmt.Println("This function should not be modified")
 }
 

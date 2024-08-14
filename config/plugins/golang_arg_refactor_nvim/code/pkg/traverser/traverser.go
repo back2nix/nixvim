@@ -58,7 +58,7 @@ func (t *ASTTraverser) Traverse(file *ast.File, functionsToModify []string, para
 				}
 			}
 		case *ast.CallExpr:
-			err := t.callExprModifier.AddArgument(node, paramName)
+			err := t.callExprModifier.AddArgument(node, paramName, paramType)
 			if err != nil {
 				return false
 			}

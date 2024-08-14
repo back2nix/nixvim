@@ -9,12 +9,12 @@ import (
 func main() {
 	coordinator := coordinator.NewMainCoordinator()
 	err := coordinator.AddArgumentToFunction(
-		"./pkg/target_file.go",
-		"target_function",
+		"./example/change_me.go",
+		"untouchedFunction",
 		"my_new_arg",
 		"int",
 	)
 	if err != nil {
-		log.Fatalf("Error adding argument to %s: %v", funcName, err)
+		log.Fatalf("Error adding argument to %v", err)
 	}
 }

@@ -35,8 +35,8 @@ func NewMainCoordinator() *MainCoordinator {
 		fileManager: filemanager.NewFileManager(),
 		funcDeclMod: modifier.NewFuncDeclModifier(),
 		funcLitMod:  modifier.NewFuncLitModifier(),
-		// callExprMod: modifier.NewCallExprModifier(nil, fset),
-		fset: fset,
+		callExprMod: modifier.NewCallExprModifier(nil, fset),
+		fset:        fset,
 	}
 }
 
