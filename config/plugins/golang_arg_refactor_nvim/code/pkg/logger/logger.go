@@ -1,11 +1,13 @@
 package logger
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-var Log, _ = NewLogger(false)
+var Log, _ = NewLogger(true)
 
 // Logger is a wrapper around zap.Logger with enable/disable functionality
 type Logger struct {
@@ -42,7 +44,7 @@ func (l *Logger) Debug(msg string, fields ...zap.Field) {
 // DebugPrintf logs a debug message with printf-like formatting if logging is enabled
 func (l *Logger) DebugPrintf(format string, args ...interface{}) {
 	if l.enabled {
-		l.sugar.Debugf(format, args...)
+		fmt.Printf(format+"\n", args...)
 	}
 }
 

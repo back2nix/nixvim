@@ -9,8 +9,8 @@ import (
 func main() {
 	coordinator := coordinator.NewMainCoordinator()
 	err := coordinator.AddArgumentToFunction(
-		"./example/change_me.go",
-		"untouchedFunction",
+		"./cmd/plugin/main.go",
+		"encodeResult",
 		"my_new_arg",
 		"int",
 	)
