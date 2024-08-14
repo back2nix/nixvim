@@ -12,9 +12,9 @@ type Parser struct {
 }
 
 // NewParser creates a new Parser instance
-func NewParser() *Parser {
+func NewParser(fset *token.FileSet) *Parser {
 	return &Parser{
-		fset: token.NewFileSet(),
+		fset: fset,
 	}
 }
 

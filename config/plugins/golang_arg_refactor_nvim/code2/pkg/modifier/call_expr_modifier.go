@@ -12,7 +12,7 @@ type CallExprModifier struct {
 	functionsToModify  map[string]struct{}
 	initialArgCounts   map[string]int
 	modifiedFunctions  map[string]bool
-	anonymousFuncCount int
+	anonymousFuncCount map[token.Pos]bool
 	fset               *token.FileSet
 	newArgName         string
 }
@@ -28,7 +28,7 @@ func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallE
 		functionsToModify:  modifierMap,
 		initialArgCounts:   initialArgCounts,
 		modifiedFunctions:  make(map[string]bool),
-		anonymousFuncCount: 0,
+		anonymousFuncCount: make(map[token.Pos]bool),
 		fset:               fset,
 	}
 }
@@ -48,12 +48,17 @@ func (m *CallExprModifier) AddArgument(node ast.Node, argName string) error {
 }
 
 func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
-	funcName := m.getAnonymousFuncName()
+	funcName := m.getAnonymousFuncName(funcLit)
+	if !m.ShouldModifyFunction(funcName) {
+		return
+	}
+
 	if m.isModified(funcName) {
 		return
 	}
 
-	// Проверяем, есть ли уже аргумент с таким именем
+	log.Printf("Modified anonymous function: %s", funcName)
+
 	hasArg := false
 	for _, field := range funcLit.Type.Params.List {
 		for _, name := range field.Names {
@@ -67,7 +72,6 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 		}
 	}
 
-	// Добавляем новый аргумент, только если его еще нет
 	if !hasArg {
 		newParam := &ast.Field{
 			Names: []*ast.Ident{ast.NewIdent(m.newArgName)},
@@ -79,7 +83,6 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 
 	m.markAsModified(funcName)
 
-	// Модифицируем тело функции
 	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.CallExpr:
@@ -99,7 +102,7 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr) {
 
 	shortFuncName := m.getShortFuncName(funcName)
 
-	if m.ShouldModifyFunction(shortFuncName) || strings.HasPrefix(shortFuncName, "anonymous") {
+	if m.ShouldModifyFunction(shortFuncName) {
 		if m.initialArgCounts[shortFuncName] == -1 {
 			m.initialArgCounts[shortFuncName] = len(callExpr.Args)
 		}
@@ -112,11 +115,9 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr) {
 		}
 	}
 
-	// Обрабатываем случай, когда функция передается как аргумент
 	for i, arg := range callExpr.Args {
 		if funcLit, ok := arg.(*ast.FuncLit); ok {
 			m.modifyFuncLit(funcLit)
-			// Если это последний аргумент и мы только что модифицировали его, добавляем новый аргумент к вызову
 			if i == len(callExpr.Args)-1 && m.ShouldModifyFunction(shortFuncName) {
 				callExpr.Args = append(callExpr.Args, &ast.Ident{Name: m.newArgName})
 			}
@@ -137,7 +138,7 @@ func (m *CallExprModifier) extractFuncName(callExpr *ast.CallExpr) (string, bool
 			return innerName + "()", true
 		}
 	case *ast.FuncLit:
-		return m.getAnonymousFuncName(), true
+		return m.getAnonymousFuncName(fun), true
 	}
 	return "", false
 }
@@ -160,9 +161,9 @@ func (m *CallExprModifier) markAsModified(funcName string) {
 	m.modifiedFunctions[funcName] = true
 }
 
-func (m *CallExprModifier) getAnonymousFuncName() string {
-	m.anonymousFuncCount++
-	return fmt.Sprintf("anonymous%d", m.anonymousFuncCount)
+func (m *CallExprModifier) getAnonymousFuncName(funcLit *ast.FuncLit) string {
+	pos := m.fset.Position(funcLit.Pos())
+	return fmt.Sprintf("anonymous%d:%d", pos.Line, pos.Column)
 }
 
 func (m *CallExprModifier) UpdateFunctionDeclarations(
@@ -170,6 +171,5 @@ func (m *CallExprModifier) UpdateFunctionDeclarations(
 	paramName, paramType string,
 	funcDeclMod *FuncDeclModifier,
 ) error {
-	// Этот метод остается пустым, чтобы не изменять сигнатуры публичных функций
 	return nil
 }

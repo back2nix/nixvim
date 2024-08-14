@@ -14,11 +14,11 @@ type CallChainAnalyzer struct {
 	fset      *token.FileSet
 }
 
-func NewCallChainAnalyzer() *CallChainAnalyzer {
+func NewCallChainAnalyzer(fset *token.FileSet) *CallChainAnalyzer {
 	return &CallChainAnalyzer{
 		callGraph: make(map[string][]string),
 		anonFuncs: make(map[string]string),
-		fset:      token.NewFileSet(),
+		fset:      fset,
 	}
 }
 
@@ -41,9 +41,13 @@ func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]s
 	return chain, nil
 }
 
+func (a *CallChainAnalyzer) getAnonymousFuncName(funcLit *ast.FuncLit) string {
+	pos := a.fset.Position(funcLit.Pos())
+	return fmt.Sprintf("anonymous%d:%d", pos.Line, pos.Column)
+}
+
 func (a *CallChainAnalyzer) buildCallGraph(file *ast.File) {
 	var currentFunc string
-
 	ast.Inspect(file, func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.FuncDecl:
@@ -51,14 +55,13 @@ func (a *CallChainAnalyzer) buildCallGraph(file *ast.File) {
 			log.Printf("Analyzing function: %s", currentFunc)
 			a.analyzeFuncBody(currentFunc, x.Body)
 		case *ast.FuncLit:
-			anonName := fmt.Sprintf("anonymous%p", x)
+			anonName := a.getAnonymousFuncName(x)
 			a.anonFuncs[anonName] = currentFunc
 			log.Printf("Analyzing anonymous function in %s: %s", currentFunc, anonName)
 			a.analyzeFuncBody(anonName, x.Body)
 		}
 		return true
 	})
-
 	log.Printf("Call graph: %v", a.callGraph)
 	log.Printf("Anonymous functions: %v", a.anonFuncs)
 }
@@ -67,7 +70,6 @@ func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt
 	if body == nil {
 		return
 	}
-
 	ast.Inspect(body, func(n ast.Node) bool {
 		if call, ok := n.(*ast.CallExpr); ok {
 			switch fun := call.Fun.(type) {
@@ -82,7 +84,7 @@ func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt
 					log.Printf("Found call from %s to %s", funcName, callee)
 				}
 			case *ast.FuncLit:
-				anonName := fmt.Sprintf("anonymous%p", fun)
+				anonName := a.getAnonymousFuncName(fun)
 				a.callGraph[funcName] = append(a.callGraph[funcName], anonName)
 				log.Printf("Found call to anonymous function from %s: %s", funcName, anonName)
 			}

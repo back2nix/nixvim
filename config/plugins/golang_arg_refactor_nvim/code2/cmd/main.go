@@ -52,13 +52,13 @@ type MainCoordinator struct {
 func NewMainCoordinator() *MainCoordinator {
 	fset := token.NewFileSet()
 	return &MainCoordinator{
-		analyzer:    analyzer.NewCallChainAnalyzer(),
-		parser:      parser.NewParser(),
+		analyzer:    analyzer.NewCallChainAnalyzer(fset),
+		parser:      parser.NewParser(fset),
 		fileManager: filemanager.NewFileManager(),
 		funcDeclMod: modifier.NewFuncDeclModifier(),
 		funcLitMod:  modifier.NewFuncLitModifier(),
-		callExprMod: modifier.NewCallExprModifier(nil, fset),
-		fset:        fset,
+		// callExprMod: modifier.NewCallExprModifier(nil, fset),
+		fset: fset,
 	}
 }
 
