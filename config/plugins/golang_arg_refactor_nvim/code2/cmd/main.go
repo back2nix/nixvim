@@ -18,14 +18,7 @@ import (
 func main() {
 	coordinator := NewMainCoordinator()
 	functions := []string{
-		"add",
-		// "multiply",
-		// "nonemae1",
-		// "nonemae2",
-		// "nonemae3",
-		// "complex1",
-		// "complex2",
-		// "complex3",
+		"untouchedFunction",
 	}
 
 	argCounter := 1

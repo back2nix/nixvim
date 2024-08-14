@@ -1,71 +1,75 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 )
 
-type Calculator struct {
-	cache map[string]int
-	mu    sync.Mutex
+type Processor interface {
+	Process(data string) (string, error)
+}
+type DataManager struct{ data string }
+
+func (dm *DataManager) Process(data string) (string, error) {
+	return fmt.Sprintf("Processed: %s", data), nil
 }
 
-func NewCalculator() *Calculator {
-	return &Calculator{cache: make(map[string]int)}
-}
+var GlobalVariable = "Do not modify this"
 
-func (c *Calculator) Calculate(operation string, a, b int) int {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	key := fmt.Sprintf("%s:%d:%d", operation, a, b)
-	if result, ok := c.cache[key]; ok {
-		return result
+func main(a1 int) {
+	result := complexFunction(42, "test", a1)
+	fmt.Println(result)
+}
+func complexFunction(x int, s string, a1 int) string {
+	dm := &DataManager{data: s}
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from panic:", r)
+		}
+	}()
+	var recursiveFunc func(int) int
+	recursiveFunc = func(n int) int {
+		if n <= 1 {
+			return 1
+		}
+		return n * recursiveFunc(n-1)
 	}
-	var result int
-	switch operation {
-	case "1":
-		result = c.add(a, b)
-	case "2":
-		result = c.multiply(a, b)
-	case "3":
-		result = c.complex1(a, b, func(x, y int) int {
-			return c.add(x, y)
-		})
-	case "4":
-		result = c.complex2(a, b, func(x, y int) int {
-			return x + y
-		})
-	default:
-		result = c.complex3(a, b, func(x, y int) int {
-			return x + y
-		})
+	ch := make(chan int)
+	go func() {
+		time.Sleep(time.Millisecond * 100)
+		ch <- recursiveFunc(5)
+	}()
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fmt.Println("Goroutine executed")
+	}()
+	untouchedFunction(a1)
+	if x > 10 {
+		for i := 0; i < 3; i++ {
+			s += string(rune(x + i))
+		}
 	}
-	c.cache[key] = result
-	return result
+	result, err := processData(dm, s)
+	if err != nil {
+		return fmt.Sprintf("Error: %v", err)
+	}
+	wg.Wait()
+	factorialResult := <-ch
+	return fmt.Sprintf("Result: %s, Factorial: %d", result, factorialResult)
 }
-
-func (c *Calculator) add(x, y int) int {
-	return x + y
+func processData(p Processor, data string) (string, error) {
+	if data == "" {
+		return "", errors.New("empty data")
+	}
+	return p.Process(data)
 }
-
-func (c *Calculator) multiply(x, y int) int {
-	return x * y
+func untouchedFunction(a1 int) {
+	fmt.Println("This function should not be modified")
 }
-
-func (c *Calculator) complex1(a, b int, op func(int, int) int) int {
-	return op(a, b)
-}
-
-func (c *Calculator) complex2(a, b int, op func(int, int) int) int {
-	return c.add(a, b)
-}
-
-func (c *Calculator) complex3(a, b int, op func(int, int) int) int {
-	return op(a, b)
-}
-
-func main() {
-	calc := NewCalculator()
-	result := calc.Calculate("1", 10, 20)
-	fmt.Println("Result:", result)
+func init() {
+	fmt.Println("Initialization complete")
 }

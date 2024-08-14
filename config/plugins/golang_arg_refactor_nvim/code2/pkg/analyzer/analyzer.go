@@ -8,14 +8,12 @@ import (
 	"log"
 )
 
-// CallChainAnalyzer представляет анализатор цепочки вызовов
 type CallChainAnalyzer struct {
 	callGraph map[string][]string
 	anonFuncs map[string]string
 	fset      *token.FileSet
 }
 
-// NewCallChainAnalyzer создает новый экземпляр CallChainAnalyzer
 func NewCallChainAnalyzer() *CallChainAnalyzer {
 	return &CallChainAnalyzer{
 		callGraph: make(map[string][]string),
@@ -24,7 +22,6 @@ func NewCallChainAnalyzer() *CallChainAnalyzer {
 	}
 }
 
-// AnalyzeCallChain анализирует цепочку вызовов для заданной целевой функции
 func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]string, error) {
 	log.Printf("Starting analysis for target function: %s", targetFunc)
 
@@ -34,13 +31,16 @@ func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]s
 	}
 
 	a.buildCallGraph(file)
-	chain := a.findCallChain(targetFunc)
+	chain := a.findCallChain("main", targetFunc)
+
+	if len(chain) > 0 && chain[0] == "main" {
+		chain = chain[1:]
+	}
 
 	log.Printf("Call chain for %s: %v", targetFunc, chain)
 	return chain, nil
 }
 
-// buildCallGraph строит граф вызовов функций
 func (a *CallChainAnalyzer) buildCallGraph(file *ast.File) {
 	var currentFunc string
 
@@ -63,7 +63,6 @@ func (a *CallChainAnalyzer) buildCallGraph(file *ast.File) {
 	log.Printf("Anonymous functions: %v", a.anonFuncs)
 }
 
-// analyzeFuncBody анализирует тело функции на наличие вызовов других функций
 func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt) {
 	if body == nil {
 		return
@@ -74,46 +73,56 @@ func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt
 			switch fun := call.Fun.(type) {
 			case *ast.Ident:
 				callee := fun.Name
-				a.callGraph[callee] = append(a.callGraph[callee], funcName)
+				a.callGraph[funcName] = append(a.callGraph[funcName], callee)
 				log.Printf("Found call from %s to %s", funcName, callee)
 			case *ast.SelectorExpr:
 				if x, ok := fun.X.(*ast.Ident); ok {
 					callee := fmt.Sprintf("%s.%s", x.Name, fun.Sel.Name)
-					a.callGraph[callee] = append(a.callGraph[callee], funcName)
+					a.callGraph[funcName] = append(a.callGraph[funcName], callee)
 					log.Printf("Found call from %s to %s", funcName, callee)
 				}
+			case *ast.FuncLit:
+				anonName := fmt.Sprintf("anonymous%p", fun)
+				a.callGraph[funcName] = append(a.callGraph[funcName], anonName)
+				log.Printf("Found call to anonymous function from %s: %s", funcName, anonName)
 			}
 		}
 		return true
 	})
 }
 
-// findCallChain находит цепочку вызовов для целевой функции
-func (a *CallChainAnalyzer) findCallChain(targetFunc string) []string {
+func (a *CallChainAnalyzer) findCallChain(start, target string) []string {
 	visited := make(map[string]bool)
-	var chain []string
+	path := []string{}
 
-	var dfs func(string)
-	dfs = func(current string) {
+	var dfs func(string) bool
+	dfs = func(current string) bool {
 		if visited[current] {
-			return
+			return false
 		}
 		visited[current] = true
-		chain = append(chain, current)
-		log.Printf("Added %s to call chain", current)
+		path = append(path, current)
 
-		for caller, callees := range a.callGraph {
-			for _, callee := range callees {
-				if callee == current {
-					dfs(caller)
-				}
+		if current == target {
+			return true
+		}
+
+		for _, callee := range a.callGraph[current] {
+			if dfs(callee) {
+				return true
 			}
 		}
-		if parent, ok := a.anonFuncs[current]; ok {
-			dfs(parent)
+
+		if anonParent, exists := a.anonFuncs[current]; exists {
+			if dfs(anonParent) {
+				return true
+			}
 		}
+
+		path = path[:len(path)-1]
+		return false
 	}
 
-	dfs(targetFunc)
-	return chain
+	dfs(start)
+	return path
 }

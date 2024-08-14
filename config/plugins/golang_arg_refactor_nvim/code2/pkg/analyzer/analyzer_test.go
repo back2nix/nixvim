@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -16,9 +17,9 @@ func main() {
 func foo() {
 	bar()
 	func() {
-	func() {
-		baz()
-	}()
+		func() {
+			baz()
+		}()
 	}()
 }
 
@@ -42,14 +43,18 @@ func unused() {
 	}
 
 	// Проверяем, что цепочка содержит ожидаемые элементы в правильном порядке
-	expected := []string{"baz", "foo", "main", "anonymous", "anonymous"}
+	expected := []string{"foo", "anonymous", "anonymous", "baz"}
+	fmt.Printf("Expected chain length %v, but got %v\n", chain, expected)
 	if len(chain) != len(expected) {
-		t.Errorf("Expected chain length %d, but got %d\n%v -> %v", len(expected), len(chain), expected, chain)
+		t.Errorf("Expected chain length %d, but got %d", len(expected), len(chain))
 	} else {
 		for i, funcName := range chain {
-			if !strings.HasPrefix(funcName, expected[i]) {
-				t.Errorf("At position expected %s, but got %s", expected, chain)
-				break
+			if expected[i] == "anonymous" {
+				if !strings.HasPrefix(funcName, "anonymous") {
+					t.Errorf("At position %d, expected anonymous function, but got %s", i, funcName)
+				}
+			} else if funcName != expected[i] {
+				t.Errorf("At position %d, expected %s, but got %s", i, expected[i], funcName)
 			}
 		}
 	}
