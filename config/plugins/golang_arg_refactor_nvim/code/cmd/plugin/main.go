@@ -103,12 +103,14 @@ func extractFunctionName(line string, cursorColumn int) string {
 	// Извлекаем имя функции/метода
 	name := line[start:end]
 
-	// Убираем receiver, если он есть
-	if dotIndex := strings.LastIndex(name, "."); dotIndex != -1 {
-		name = name[dotIndex+1:]
+	// Проверяем, есть ли в имени точка
+	if strings.Contains(name, ".") {
+		// Если есть точка, возвращаем полное имя (receiver.Method)
+		return name
+	} else {
+		// Если точки нет, это просто функция, возвращаем ее имя
+		return name
 	}
-
-	return name
 }
 
 // Вспомогательные функции
