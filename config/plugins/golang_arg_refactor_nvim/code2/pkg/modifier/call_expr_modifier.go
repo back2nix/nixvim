@@ -9,9 +9,12 @@ import (
 )
 
 type CallExprModifier struct {
-	functionsToModify map[string]struct{}
-	initialArgCounts  map[string]int
-	fset              *token.FileSet
+	functionsToModify  map[string]struct{}
+	initialArgCounts   map[string]int
+	modifiedFunctions  map[string]bool
+	anonymousFuncCount int
+	fset               *token.FileSet
+	newArgName         string
 }
 
 func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallExprModifier {
@@ -22,62 +25,103 @@ func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallE
 		initialArgCounts[funcName] = -1
 	}
 	return &CallExprModifier{
-		functionsToModify: modifierMap,
-		initialArgCounts:  initialArgCounts,
-		fset:              fset,
+		functionsToModify:  modifierMap,
+		initialArgCounts:   initialArgCounts,
+		modifiedFunctions:  make(map[string]bool),
+		anonymousFuncCount: 0,
+		fset:               fset,
 	}
 }
 
 func (m *CallExprModifier) AddArgument(node ast.Node, argName string) error {
+	m.newArgName = argName
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
-		case *ast.CallExpr:
-			log.Printf("Inspecting CallExpr: %v", x)
-			m.modifyCallExpr(x, argName)
 		case *ast.FuncLit:
-			log.Printf("Inspecting FuncLit: %v", x)
-			ast.Inspect(x.Body, func(n ast.Node) bool {
-				if ce, ok := n.(*ast.CallExpr); ok {
-					log.Printf("Inspecting nested CallExpr in FuncLit: %v", ce)
-					m.modifyCallExpr(ce, argName)
-				}
-				return true
-			})
+			m.modifyFuncLit(x)
+		case *ast.CallExpr:
+			m.modifyCallExpr(x)
 		}
 		return true
 	})
 	return nil
 }
 
-func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr, argName string) {
+func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
+	funcName := m.getAnonymousFuncName()
+	if m.isModified(funcName) {
+		return
+	}
+
+	// Проверяем, есть ли уже аргумент с таким именем
+	hasArg := false
+	for _, field := range funcLit.Type.Params.List {
+		for _, name := range field.Names {
+			if name.Name == m.newArgName {
+				hasArg = true
+				break
+			}
+		}
+		if hasArg {
+			break
+		}
+	}
+
+	// Добавляем новый аргумент, только если его еще нет
+	if !hasArg {
+		newParam := &ast.Field{
+			Names: []*ast.Ident{ast.NewIdent(m.newArgName)},
+			Type:  ast.NewIdent("string"),
+		}
+		funcLit.Type.Params.List = append(funcLit.Type.Params.List, newParam)
+		log.Printf("Modified anonymous function: %s", funcName)
+	}
+
+	m.markAsModified(funcName)
+
+	// Модифицируем тело функции
+	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.CallExpr:
+			m.modifyCallExpr(x)
+		case *ast.FuncLit:
+			m.modifyFuncLit(x)
+		}
+		return true
+	})
+}
+
+func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr) {
 	funcName, ok := m.extractFuncName(callExpr)
 	if !ok {
-		log.Printf("Could not extract function name from CallExpr: %v", callExpr)
 		return
 	}
 
 	shortFuncName := m.getShortFuncName(funcName)
 
-	if !m.ShouldModifyFunction(shortFuncName) {
-		log.Printf("Skipping modification for function: %s", shortFuncName)
-		return
+	if m.ShouldModifyFunction(shortFuncName) || strings.HasPrefix(shortFuncName, "anonymous") {
+		if m.initialArgCounts[shortFuncName] == -1 {
+			m.initialArgCounts[shortFuncName] = len(callExpr.Args)
+		}
+
+		expectedArgCount := m.initialArgCounts[shortFuncName] + 1
+		if len(callExpr.Args) < expectedArgCount {
+			newArg := &ast.Ident{Name: m.newArgName}
+			callExpr.Args = append(callExpr.Args, newArg)
+			log.Printf("Modified function call: %s", shortFuncName)
+		}
 	}
 
-	log.Printf("Modifying CallExpr for function: %s", funcName)
-
-	if m.initialArgCounts[shortFuncName] == -1 {
-		m.initialArgCounts[shortFuncName] = len(callExpr.Args)
+	// Обрабатываем случай, когда функция передается как аргумент
+	for i, arg := range callExpr.Args {
+		if funcLit, ok := arg.(*ast.FuncLit); ok {
+			m.modifyFuncLit(funcLit)
+			// Если это последний аргумент и мы только что модифицировали его, добавляем новый аргумент к вызову
+			if i == len(callExpr.Args)-1 && m.ShouldModifyFunction(shortFuncName) {
+				callExpr.Args = append(callExpr.Args, &ast.Ident{Name: m.newArgName})
+			}
+		}
 	}
-
-	expectedArgCount := m.initialArgCounts[shortFuncName] + 1
-	if len(callExpr.Args) >= expectedArgCount {
-		log.Printf("Function %s already has expected number of arguments", funcName)
-		return
-	}
-
-	newArg := &ast.Ident{Name: argName}
-	callExpr.Args = append(callExpr.Args, newArg)
-	log.Printf("Added argument '%s' to function call: %s", argName, funcName)
 }
 
 func (m *CallExprModifier) extractFuncName(callExpr *ast.CallExpr) (string, bool) {
@@ -89,10 +133,11 @@ func (m *CallExprModifier) extractFuncName(callExpr *ast.CallExpr) (string, bool
 			return fmt.Sprintf("%s.%s", x.Name, fun.Sel.Name), true
 		}
 	case *ast.CallExpr:
-		// Обработка вызовов вида f()()
 		if innerName, ok := m.extractFuncName(fun); ok {
 			return innerName + "()", true
 		}
+	case *ast.FuncLit:
+		return m.getAnonymousFuncName(), true
 	}
 	return "", false
 }
@@ -107,20 +152,24 @@ func (m *CallExprModifier) ShouldModifyFunction(funcName string) bool {
 	return shouldModify
 }
 
+func (m *CallExprModifier) isModified(funcName string) bool {
+	return m.modifiedFunctions[funcName]
+}
+
+func (m *CallExprModifier) markAsModified(funcName string) {
+	m.modifiedFunctions[funcName] = true
+}
+
+func (m *CallExprModifier) getAnonymousFuncName() string {
+	m.anonymousFuncCount++
+	return fmt.Sprintf("anonymous%d", m.anonymousFuncCount)
+}
+
 func (m *CallExprModifier) UpdateFunctionDeclarations(
 	file *ast.File,
 	paramName, paramType string,
 	funcDeclMod *FuncDeclModifier,
 ) error {
-	for _, decl := range file.Decls {
-		if funcDecl, ok := decl.(*ast.FuncDecl); ok {
-			if m.ShouldModifyFunction(funcDecl.Name.Name) {
-				err := funcDeclMod.AddParameter(funcDecl, paramName, paramType)
-				if err != nil {
-					return fmt.Errorf("failed to update function declaration %s: %w", funcDecl.Name.Name, err)
-				}
-			}
-		}
-	}
+	// Этот метод остается пустым, чтобы не изменять сигнатуры публичных функций
 	return nil
 }
