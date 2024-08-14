@@ -10,11 +10,11 @@ buildGoModule rec {
 
   # vendorSha256 = lib.fakeSha256;
 
-  vendorHash = lib.fakeHash;
-  # vendorHash = "sha256-/Bl4G5STa5lnNntZnMmt+BfES+N7ZYAwC9tzpuqUKcc=";
+  # vendorHash = lib.fakeHash;
+  vendorHash = "sha256-U8snpKhfhSK3GNP9iZ09g8fNlp4lEX1ctrMtSex5fBE=";
 
   buildPhase = ''
-    go build -mod=vendor -o ${pname} main.go
+    go build -mod=vendor -o ${pname} cmd/plugin/main.go
   '';
 
   installPhase = ''

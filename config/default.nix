@@ -40,6 +40,7 @@ in {
     ./plugins/golang_rename_import_nvim/plugin.nix
     ./plugins/golang_rename_alias_import_nvim/plugin.nix
     ./plugins/golang_move_function_nvim/plugin.nix
+    ./plugins/golang_arg_refactor_nvim/plugin.nix
 
     # ./plugins/treesitter/treesitter.nix
     # ./plugins/treesitter/treesitter-context.nix

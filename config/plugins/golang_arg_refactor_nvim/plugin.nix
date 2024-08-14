@@ -24,19 +24,10 @@ in {
   keymaps = [
     {
       mode = ["n"];
-      key = "<leader>mF";
-      action = ":MoveCode<CR>";
+      key = "<leader>mt";
+      action = ":AddArgument<CR>";
       options = {
-        desc = "Move code";
-        silent = true;
-      };
-    }
-    {
-      mode = ["n"];
-      key = "<leader>r";
-      action = ":RepeatMoveCode<CR>";
-      options = {
-        desc = "Repeat move";
+        desc = "Args propagation";
         silent = true;
       };
     }
