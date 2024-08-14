@@ -88,19 +88,36 @@ func encodeResult(success bool, message, errMsg string) (string, error) {
 }
 
 func extractFunctionName(line string, cursorColumn int) string {
-	// Находим подстроку от курсора до конца строки
-	subLine := line[cursorColumn:]
-
-	// Ищем первую открывающую скобку
-	endIndex := strings.Index(subLine, "(")
-
-	if endIndex == -1 {
-		// Если скобка не найдена, возвращаем всю подстроку
-		return strings.TrimSpace(subLine)
+	// Находим начало имени функции/метода
+	start := cursorColumn
+	for start > 0 && (isLetter(line[start-1]) || isDigit(line[start-1]) || line[start-1] == '.' || line[start-1] == '_') {
+		start--
 	}
 
-	// Возвращаем подстроку до скобки, удаляя лишние пробелы
-	return strings.TrimSpace(subLine[:endIndex])
+	// Находим конец имени функции/метода
+	end := cursorColumn
+	for end < len(line) && (isLetter(line[end]) || isDigit(line[end]) || line[end] == '.' || line[end] == '_') {
+		end++
+	}
+
+	// Извлекаем имя функции/метода
+	name := line[start:end]
+
+	// Убираем receiver, если он есть
+	if dotIndex := strings.LastIndex(name, "."); dotIndex != -1 {
+		name = name[dotIndex+1:]
+	}
+
+	return name
+}
+
+// Вспомогательные функции
+func isLetter(c byte) bool {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+}
+
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
 }
 
 func main() {
