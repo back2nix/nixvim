@@ -1,7 +1,7 @@
 package analyzer
 
 import (
-	"fmt"
+	"go/token"
 	"strings"
 	"testing"
 )
@@ -10,42 +10,67 @@ func TestAnalyzeCallChain(t *testing.T) {
 	src := `
 package main
 
-func main() {
-	foo()
+import (
+	"fmt"
+)
+
+type MyStruct struct {
+	value int
 }
 
-func foo() {
-	bar()
+func (m *MyStruct) Method1(callback func() int) {
+	result := callback()
+	fmt.Printf("Method1 called with result: %d\n", result)
+	m.Method2(func() {
+		fmt.Println("Anonymous function in Method2")
+	})
+}
+
+func (m *MyStruct) Method2(callback func()) {
+	fmt.Println("Method2 called")
+	callback()
+	m.value++
+}
+
+func outerFunction(x int) func(int) int {
+	return func(y int) int {
+		return x + y
+	}
+}
+
+func main() {
+	myStruct := &MyStruct{value: 10}
+
+	myStruct.Method1(func() int {
+		innerFunc := outerFunction(5)
+		return innerFunc(3)
+	})
+
+	fmt.Printf("MyStruct value: %d\n", myStruct.value)
+
 	func() {
+		fmt.Println("Anonymous function in main")
 		func() {
-			baz()
+			fmt.Println("Nested anonymous function")
+			myStruct.Method2(func() {
+				fmt.Printf("Final value: %d\n", myStruct.value)
+			})
 		}()
 	}()
 }
-
-func bar() {
-	// Пустая функция
-}
-
-func baz() {
-	// Целевая функция
-}
-
-func unused() {
-	// Эта функция не должна попасть в цепочку вызовов
-}
 `
 
-	analyzer := NewCallChainAnalyzer()
-	chain, err := analyzer.AnalyzeCallChain([]byte(src), "baz")
+	fset := token.NewFileSet()
+	analyzer := NewCallChainAnalyzer(fset)
+	chain, err := analyzer.AnalyzeCallChain([]byte(src), "callback")
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
 
-	// Проверяем, что цепочка содержит ожидаемые элементы в правильном порядке
+	// Check if the chain contains the expected elements in the correct order
 	expected := []string{"foo", "anonymous", "anonymous", "baz"}
-	fmt.Printf("Expected chain length %v, but got %v\n", chain, expected)
 	if len(chain) != len(expected) {
+		t.Errorf("Expected chain length %+v, but got %+v", expected, chain)
 		t.Errorf("Expected chain length %d, but got %d", len(expected), len(chain))
 	} else {
 		for i, funcName := range chain {

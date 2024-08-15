@@ -22,3 +22,6 @@ test/filemanager:
 
 test/main:
 	go test -v -run NewMainCoordinator ./cmd
+
+run:
+	go run -tags debug cmd/main.go

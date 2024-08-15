@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var Log, _ = NewLogger(true)
+var Log *Logger
 
 // Logger is a wrapper around zap.Logger with enable/disable functionality
 type Logger struct {
