@@ -4,16 +4,15 @@ import (
 	"go/ast"
 )
 
-type IFuncDeclModifier interface {
-	AddParameter(funcDecl *ast.FuncDecl, paramName, paramType string) error
-}
+// IASTModifier представляет единый интерфейс для модификации AST
+type IASTModifier interface {
+	// Modify выполняет модификацию AST, добавляя новый параметр к указанным функциям
+	Modify(node ast.Node, argName, argType string) error
 
-type IFuncLitModifier interface {
-	AddParameter(funcLit *ast.FuncLit, paramName, paramType string, parentFuncName string) error
-}
-
-type ICallExprModifier interface {
-	AddArgument(node ast.Node, argName, argType string) error
+	// ShouldModifyFunction проверяет, нужно ли модифицировать данную функцию
 	ShouldModifyFunction(funcName string) bool
-	UpdateFunctionDeclarations(file *ast.File, paramName, paramType string, funcDeclMod *FuncDeclModifier) error
+
+	// UpdateFunctionDeclarations обновляет объявления функций в файле AST
+	// Этот метод оставлен для обратной совместимости
+	UpdateFunctionDeclarations(file *ast.File, paramName, paramType string) error
 }

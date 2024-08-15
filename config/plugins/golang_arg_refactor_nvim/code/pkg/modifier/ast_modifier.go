@@ -9,7 +9,7 @@ import (
 	"github.com/back2nix/go-arg-propagation/pkg/logger"
 )
 
-type CallExprModifier struct {
+type ASTModifier struct {
 	functionsToModify  map[string]struct{}
 	initialArgCounts   map[string]int
 	modifiedFunctions  map[string]bool
@@ -19,14 +19,17 @@ type CallExprModifier struct {
 	newArgType         string
 }
 
-func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallExprModifier {
+func NewASTModifier(functionsToModify []string, fset *token.FileSet) *ASTModifier {
 	modifierMap := make(map[string]struct{})
 	initialArgCounts := make(map[string]int)
+
+	logger.Log.DebugPrintf("[ASTModifier] functionsToModify: %s", functionsToModify)
+
 	for _, funcName := range functionsToModify {
 		modifierMap[funcName] = struct{}{}
 		initialArgCounts[funcName] = -1
 	}
-	return &CallExprModifier{
+	return &ASTModifier{
 		functionsToModify:  modifierMap,
 		initialArgCounts:   initialArgCounts,
 		modifiedFunctions:  make(map[string]bool),
@@ -35,11 +38,14 @@ func NewCallExprModifier(functionsToModify []string, fset *token.FileSet) *CallE
 	}
 }
 
-func (m *CallExprModifier) AddArgument(node ast.Node, argName, argType string) error {
+func (m *ASTModifier) Modify(node ast.Node, argName, argType string) error {
 	m.newArgName = argName
 	m.newArgType = argType
+
 	ast.Inspect(node, func(n ast.Node) bool {
 		switch x := n.(type) {
+		case *ast.FuncDecl:
+			m.modifyFuncDecl(x)
 		case *ast.FuncLit:
 			m.modifyFuncLit(x)
 		case *ast.CallExpr:
@@ -47,10 +53,39 @@ func (m *CallExprModifier) AddArgument(node ast.Node, argName, argType string) e
 		}
 		return true
 	})
+
 	return nil
 }
 
-func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
+func (m *ASTModifier) modifyFuncDecl(funcDecl *ast.FuncDecl) {
+	if !m.ShouldModifyFunction(funcDecl.Name.Name) {
+		return
+	}
+
+	if m.parameterExists(funcDecl, m.newArgName) {
+		return
+	}
+
+	newParam := &ast.Field{
+		Names: []*ast.Ident{ast.NewIdent(m.newArgName)},
+		Type:  ast.NewIdent(m.newArgType),
+	}
+
+	if funcDecl.Type.Params == nil {
+		funcDecl.Type.Params = &ast.FieldList{}
+	}
+
+	funcDecl.Type.Params.List = append(funcDecl.Type.Params.List, newParam)
+
+	if funcDecl.Body != nil {
+		m.modifyFunctionBody(funcDecl.Body)
+	}
+
+	m.markAsModified(funcDecl.Name.Name)
+	logger.Log.DebugPrintf("Modified function declaration: %s", funcDecl.Name.Name)
+}
+
+func (m *ASTModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 	funcName := m.getAnonymousFuncName(funcLit)
 	if !m.ShouldModifyFunction(funcName) {
 		return
@@ -59,8 +94,6 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 	if m.isModified(funcName) {
 		return
 	}
-
-	logger.Log.DebugPrintf("Modified anonymous function: %s", funcName)
 
 	hasArg := false
 	for _, field := range funcLit.Type.Params.List {
@@ -86,18 +119,10 @@ func (m *CallExprModifier) modifyFuncLit(funcLit *ast.FuncLit) {
 
 	m.markAsModified(funcName)
 
-	ast.Inspect(funcLit.Body, func(n ast.Node) bool {
-		switch x := n.(type) {
-		case *ast.CallExpr:
-			m.modifyCallExpr(x)
-		case *ast.FuncLit:
-			m.modifyFuncLit(x)
-		}
-		return true
-	})
+	m.modifyFunctionBody(funcLit.Body)
 }
 
-func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr) {
+func (m *ASTModifier) modifyCallExpr(callExpr *ast.CallExpr) {
 	funcName, ok := m.extractFuncName(callExpr)
 	if !ok {
 		return
@@ -128,7 +153,25 @@ func (m *CallExprModifier) modifyCallExpr(callExpr *ast.CallExpr) {
 	}
 }
 
-func (m *CallExprModifier) extractFuncName(callExpr *ast.CallExpr) (string, bool) {
+func (m *ASTModifier) modifyFunctionBody(body *ast.BlockStmt) {
+	ast.Inspect(body, func(n ast.Node) bool {
+		if returnStmt, ok := n.(*ast.ReturnStmt); ok {
+			for i, expr := range returnStmt.Results {
+				if call, ok := expr.(*ast.CallExpr); ok {
+					if ident, ok := call.Fun.(*ast.Ident); ok {
+						if m.ShouldModifyFunction(ident.Name) {
+							call.Args = append(call.Args, ast.NewIdent(m.newArgName))
+							returnStmt.Results[i] = call
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+}
+
+func (m *ASTModifier) extractFuncName(callExpr *ast.CallExpr) (string, bool) {
 	switch fun := callExpr.Fun.(type) {
 	case *ast.Ident:
 		return fun.Name, true
@@ -146,33 +189,47 @@ func (m *CallExprModifier) extractFuncName(callExpr *ast.CallExpr) (string, bool
 	return "", false
 }
 
-func (m *CallExprModifier) getShortFuncName(funcName string) string {
+func (m *ASTModifier) getShortFuncName(funcName string) string {
 	parts := strings.Split(funcName, ".")
 	return parts[len(parts)-1]
 }
 
-func (m *CallExprModifier) ShouldModifyFunction(funcName string) bool {
+func (m *ASTModifier) ShouldModifyFunction(funcName string) bool {
 	_, shouldModify := m.functionsToModify[funcName]
 	return shouldModify
 }
 
-func (m *CallExprModifier) isModified(funcName string) bool {
+func (m *ASTModifier) isModified(funcName string) bool {
 	return m.modifiedFunctions[funcName]
 }
 
-func (m *CallExprModifier) markAsModified(funcName string) {
+func (m *ASTModifier) markAsModified(funcName string) {
 	m.modifiedFunctions[funcName] = true
 }
 
-func (m *CallExprModifier) getAnonymousFuncName(funcLit *ast.FuncLit) string {
+func (m *ASTModifier) getAnonymousFuncName(funcLit *ast.FuncLit) string {
 	pos := m.fset.Position(funcLit.Pos())
 	return fmt.Sprintf("anonymous%d:%d", pos.Line, pos.Column)
 }
 
-func (m *CallExprModifier) UpdateFunctionDeclarations(
+func (m *ASTModifier) parameterExists(funcDecl *ast.FuncDecl, paramName string) bool {
+	if funcDecl.Type.Params != nil {
+		for _, field := range funcDecl.Type.Params.List {
+			for _, name := range field.Names {
+				if name.Name == paramName {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// UpdateFunctionDeclarations is kept for backwards compatibility, but its functionality
+// is now integrated into the Modify method
+func (m *ASTModifier) UpdateFunctionDeclarations(
 	file *ast.File,
 	paramName, paramType string,
-	funcDeclMod *FuncDeclModifier,
 ) error {
-	return nil
+	return m.Modify(file, paramName, paramType)
 }

@@ -21,9 +21,7 @@ type MainCoordinator struct {
 	parser      *parser.Parser
 	fileManager *filemanager.FileManager
 	traverser   *traverser.ASTTraverser
-	funcDeclMod modifier.IFuncDeclModifier
-	funcLitMod  modifier.IFuncLitModifier
-	callExprMod modifier.ICallExprModifier
+	astModifier modifier.IASTModifier
 	fset        *token.FileSet
 }
 
@@ -33,9 +31,6 @@ func NewMainCoordinator() *MainCoordinator {
 		analyzer:    analyzer.NewCallChainAnalyzer(fset),
 		parser:      parser.NewParser(fset),
 		fileManager: filemanager.NewFileManager(),
-		funcDeclMod: modifier.NewFuncDeclModifier(),
-		funcLitMod:  modifier.NewFuncLitModifier(),
-		callExprMod: modifier.NewCallExprModifier(nil, fset),
 		fset:        fset,
 	}
 }
@@ -62,16 +57,11 @@ func (mc *MainCoordinator) AddArgumentToFunction(filePath, targetFunc, paramName
 		return fmt.Errorf("failed to parse AST: %w", err)
 	}
 
-	// Step 4: Set up the call expression modifier with the functions to modify
-	mc.callExprMod = modifier.NewCallExprModifier(functionsToModify, mc.fset)
+	// Step 4: Set up the AST modifier
+	mc.astModifier = modifier.NewASTModifier(functionsToModify, mc.fset)
 
 	// Step 5: Set up the traverser
-	mc.traverser = traverser.NewASTTraverser(
-		mc.parser,
-		mc.funcDeclMod.(*modifier.FuncDeclModifier),
-		mc.funcLitMod.(*modifier.FuncLitModifier),
-		mc.callExprMod.(*modifier.CallExprModifier),
-	)
+	mc.traverser = traverser.NewASTTraverser(mc.parser, mc.astModifier)
 
 	// Step 6: Traverse and modify the AST
 	err = mc.traverseAndModifyAST(file, functionsToModify, paramName, paramType)

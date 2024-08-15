@@ -10,17 +10,28 @@ import (
 )
 
 type CallChainAnalyzer struct {
-	callGraph map[string][]string
-	anonFuncs map[string]string
-	fset      *token.FileSet
+	callGraph    map[string][]string
+	anonFuncs    map[string]string
+	reverseCalls map[string][]string
+	fset         *token.FileSet
 }
 
 func NewCallChainAnalyzer(fset *token.FileSet) *CallChainAnalyzer {
 	return &CallChainAnalyzer{
-		callGraph: make(map[string][]string),
-		anonFuncs: make(map[string]string),
-		fset:      fset,
+		callGraph:    make(map[string][]string),
+		anonFuncs:    make(map[string]string),
+		reverseCalls: make(map[string][]string),
+		fset:         fset,
 	}
+}
+
+func removeMain(chain []string) []string {
+	for i, v := range chain {
+		if v == "main" {
+			return append(chain[:i], chain[i+1:]...)
+		}
+	}
+	return chain
 }
 
 func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]string, error) {
@@ -32,13 +43,11 @@ func (a *CallChainAnalyzer) AnalyzeCallChain(src []byte, targetFunc string) ([]s
 	}
 
 	a.buildCallGraph(file)
-	chain := a.findCallChain("", targetFunc)
+	chain := a.findCompleteCallChain(targetFunc)
 
-	if len(chain) > 0 && chain[0] == "main" {
-		chain = chain[1:]
-	}
+	chain = removeMain(chain)
 
-	logger.Log.DebugPrintf("[CallChainAnalyzer] Call chain for %s: %v", targetFunc, chain)
+	logger.Log.DebugPrintf("[CallChainAnalyzer] Complete call chain for %s: %v", targetFunc, chain)
 	return chain, nil
 }
 
@@ -48,119 +57,107 @@ func (a *CallChainAnalyzer) getAnonymousFuncName(funcLit *ast.FuncLit) string {
 }
 
 func (a *CallChainAnalyzer) buildCallGraph(file *ast.File) {
-	var currentFunc string
-	ast.Inspect(file, func(n ast.Node) bool {
+	var stack []string
+
+	var inspectNode func(ast.Node) bool
+	inspectNode = func(n ast.Node) bool {
 		switch x := n.(type) {
 		case *ast.FuncDecl:
-			currentFunc = x.Name.Name
-			logger.Log.DebugPrintf("[CallChainAnalyzer] Analyzing function: %s", currentFunc)
-			a.analyzeFuncBody(currentFunc, x.Body)
+			funcName := x.Name.Name
+			stack = append(stack, funcName)
+			a.analyzeFuncBody(funcName, x.Body)
+			stack = stack[:len(stack)-1]
 		case *ast.FuncLit:
 			anonName := a.getAnonymousFuncName(x)
-			a.anonFuncs[anonName] = currentFunc
-			logger.Log.DebugPrintf("[CallChainAnalyzer] Analyzing anonymous function in %s: %s", currentFunc, anonName)
+			parent := ""
+			if len(stack) > 0 {
+				parent = stack[len(stack)-1]
+			}
+			a.anonFuncs[anonName] = parent
+			stack = append(stack, anonName)
 			a.analyzeFuncBody(anonName, x.Body)
+			stack = stack[:len(stack)-1]
 		}
 		return true
-	})
+	}
+
+	ast.Inspect(file, inspectNode)
+
 	logger.Log.DebugPrintf("[CallChainAnalyzer] Call graph: %v", a.callGraph)
 	logger.Log.DebugPrintf("[CallChainAnalyzer] Anonymous functions: %v", a.anonFuncs)
+	logger.Log.DebugPrintf("[CallChainAnalyzer] Reverse calls: %v", a.reverseCalls)
 }
 
 func (a *CallChainAnalyzer) analyzeFuncBody(funcName string, body *ast.BlockStmt) {
 	if body == nil {
 		return
 	}
+
 	ast.Inspect(body, func(n ast.Node) bool {
-		if call, ok := n.(*ast.CallExpr); ok {
-			switch fun := call.Fun.(type) {
-			case *ast.Ident:
-				callee := fun.Name
+		switch x := n.(type) {
+		case *ast.CallExpr:
+			callee := a.getCalleeName(x.Fun)
+			if callee != "" {
 				a.callGraph[funcName] = append(a.callGraph[funcName], callee)
+				a.reverseCalls[callee] = append(a.reverseCalls[callee], funcName)
 				logger.Log.DebugPrintf("[CallChainAnalyzer] Found call from %s to %s", funcName, callee)
-			case *ast.SelectorExpr:
-				if x, ok := fun.X.(*ast.Ident); ok {
-					callee := fmt.Sprintf("%s.%s", x.Name, fun.Sel.Name)
-					a.callGraph[funcName] = append(a.callGraph[funcName], callee)
-					logger.Log.DebugPrintf("[CallChainAnalyzer] Found call from %s to %s", funcName, callee)
-				}
-			case *ast.FuncLit:
-				anonName := a.getAnonymousFuncName(fun)
-				a.callGraph[funcName] = append(a.callGraph[funcName], anonName)
-				logger.Log.DebugPrintf("[CallChainAnalyzer] Found call to anonymous function from %s: %s", funcName, anonName)
 			}
+		case *ast.FuncLit:
+			anonName := a.getAnonymousFuncName(x)
+			a.anonFuncs[anonName] = funcName
+			logger.Log.DebugPrintf("[CallChainAnalyzer] Found nested anonymous function in %s: %s", funcName, anonName)
 		}
 		return true
 	})
 }
 
-func (a *CallChainAnalyzer) findCallChain(start, target string) []string {
-	visited := make(map[string]bool)
-	path := []string{}
-	var result []string
+func (a *CallChainAnalyzer) getCalleeName(expr ast.Expr) string {
+	switch x := expr.(type) {
+	case *ast.Ident:
+		return x.Name
+	case *ast.SelectorExpr:
+		if ident, ok := x.X.(*ast.Ident); ok {
+			return fmt.Sprintf("%s.%s", ident.Name, x.Sel.Name)
+		}
+	case *ast.FuncLit:
+		return a.getAnonymousFuncName(x)
+	}
+	return ""
+}
 
-	var dfs func(string) bool
-	dfs = func(current string) bool {
+func (a *CallChainAnalyzer) findCompleteCallChain(target string) []string {
+	var result []string
+	visited := make(map[string]bool)
+
+	var dfs func(string)
+	dfs = func(current string) {
 		if visited[current] {
-			return false
+			return
 		}
 		visited[current] = true
-		path = append(path, current)
+		result = append([]string{current}, result...)
 
-		logger.Log.DebugPrintf("[CallChainAnalyzer] Visiting function: %s", current)
-
-		if current == target {
-			result = make([]string, len(path))
-			copy(result, path)
-			logger.Log.DebugPrintf("[CallChainAnalyzer] Found target function: %s", target)
-			return true
+		callers := a.reverseCalls[current]
+		for _, caller := range callers {
+			dfs(caller)
 		}
 
-		// Проверяем вызовы обычных функций
-		for _, callee := range a.callGraph[current] {
-			if dfs(callee) {
-				return true
-			}
-		}
-
-		// Проверяем вызовы анонимных функций
-		for anonFunc, parentFunc := range a.anonFuncs {
-			if parentFunc == current {
-				if dfs(anonFunc) {
-					return true
-				}
-			}
-		}
-
-		// Проверяем, является ли текущая функция анонимной
-		if parentFunc, isAnon := a.anonFuncs[current]; isAnon {
-			if dfs(parentFunc) {
-				return true
-			}
-		}
-
-		path = path[:len(path)-1]
-		return false
-	}
-
-	// Начинаем поиск с указанной начальной функции
-	if start != "" {
-		if dfs(start) {
-			logger.Log.DebugPrintf("[CallChainAnalyzer] Found path from %s to %s: %v", start, target, result)
-			return result
+		if parent, isAnon := a.anonFuncs[current]; isAnon {
+			dfs(parent)
 		}
 	}
 
-	// Если путь не найден или начальная функция не указана, ищем по всем функциям
-	for funcName := range a.callGraph {
-		visited = make(map[string]bool)
-		path = []string{}
-		if dfs(funcName) {
-			logger.Log.DebugPrintf("[CallChainAnalyzer] Found path from %s to %s: %v", funcName, target, result)
-			return result
+	dfs(target)
+
+	// Remove duplicates while preserving order
+	seen := make(map[string]bool)
+	var uniqueResult []string
+	for i := len(result) - 1; i >= 0; i-- {
+		if !seen[result[i]] {
+			seen[result[i]] = true
+			uniqueResult = append([]string{result[i]}, uniqueResult...)
 		}
 	}
 
-	logger.Log.DebugPrintf("[CallChainAnalyzer] No path found to %s", target)
-	return nil
+	return uniqueResult
 }
