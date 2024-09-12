@@ -51,4 +51,17 @@ in {
   # "/spell/en.utf-8.spl" = builtins.readFile "${inputs.nvim-spell-en-utf8-dictionary}";
   # "/spell/en.utf-8.sug" = builtins.readFile "${inputs.nvim-spell-en-utf8-suggestions}";
   # };
+
+  # Отключение проверки орфографии для YAML файлов
+  autoCmd = [
+    {
+      event = "FileType";
+      pattern = ["yaml"];
+      callback.__raw = ''
+        function()
+          vim.opt_local.spell = false
+        end
+      '';
+    }
+  ];
 }
