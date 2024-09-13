@@ -33,6 +33,7 @@ in {
     ./plugins/snippets/luasnip.nix
     # ./plugins/utils/hardtime.nix
     ./plugins/utils/gitlinker.nix
+    ./plugins/auto-fix-return.nix
     ./plugins/example_golang_plugin_nvim/plugin.nix
     ./plugins/golang_import_complete_nvim/plugin.nix
     ./plugins/golang_import_plugin_nvim/plugin.nix
