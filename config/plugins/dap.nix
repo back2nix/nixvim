@@ -23,7 +23,7 @@
   config = let
     helpers = inputs.nixvim.lib.${pkgs.system}.helpers;
 
-    gdb-config = {
+    gdb-args-config = {
       name = "Launch (GDB)";
       type = "gdb";
       request = "launch";
@@ -35,6 +35,19 @@
       args.__raw = ''
         function()
         return vim.split(vim.fn.input("Arguments: "), " ")
+        end
+      '';
+      cwd = ''''${workspaceFolder}'';
+      stopOnEntry = false;
+    };
+
+    gdb-config = {
+      name = "Launch (GDB)";
+      type = "gdb";
+      request = "launch";
+      program.__raw = ''
+        function()
+        return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. '/', "file")
         end
       '';
       cwd = ''''${workspaceFolder}'';
@@ -181,12 +194,13 @@
         # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
         sh = lib.optionals pkgs.stdenv.isLinux [sh-config];
 
-        c = [lldb-config] ++ lib.optionals pkgs.stdenv.isLinux [gdb-config];
+        c = [lldb-config] ++ lib.optionals pkgs.stdenv.isLinux [gdb-config gdb-args-config];
 
         cpp =
           [lldb-config]
           ++ lib.optionals pkgs.stdenv.isLinux [
             gdb-config
+            gdb-args-config
             # codelldb-config
           ];
       };
