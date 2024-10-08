@@ -24,7 +24,7 @@
     helpers = inputs.nixvim.lib.${pkgs.system}.helpers;
 
     gdb-args-config = {
-      name = "Launch (GDB)";
+      name = "Launch (GDB) with args";
       type = "gdb";
       request = "launch";
       program.__raw = ''
