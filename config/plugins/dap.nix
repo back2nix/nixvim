@@ -29,8 +29,14 @@
       request = "launch";
       program.__raw = ''
         function()
-            return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. '/', "file")
-        end'';
+        return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. '/', "file")
+        end
+      '';
+      args.__raw = ''
+        function()
+        return vim.split(vim.fn.input("Arguments: "), " ")
+        end
+      '';
       cwd = ''''${workspaceFolder}'';
       stopOnEntry = false;
     };
