@@ -348,6 +348,12 @@ in {
             "gosum"
             "gowork"
             "java"
+            "javascript"
+            "typescript"
+            "html"
+            "css"
+            "scss"
+            "vue"
           ];
         };
         grammarPackages = with config.plugins.treesitter.package.builtGrammars; [
@@ -474,6 +480,10 @@ in {
         };
       };
 
+      typescript-tools = {
+        enable = true;
+        settings.tsserverPlugins = ["@vue/typescript-plugin"];
+      };
       # Language server
       lsp = {
         enable = true;
@@ -546,6 +556,15 @@ in {
           svelte.enable = false; # Svelte
           vuels.enable = false; # Vue
           tsserver.enable = true; # TS/JS
+          tsserver.filetypes = [
+            "javascript"
+            "javascriptreact"
+            "javascript.jsx"
+            "typescript"
+            "typescriptreact"
+            "typescript.tsx"
+            "vue"
+          ];
           cssls.enable = true; # CSS
           tailwindcss.enable = true; # TailwindCSS
           html.enable = true; # HTML

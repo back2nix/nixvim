@@ -23,6 +23,30 @@
   config = let
     helpers = inputs.nixvim.lib.${pkgs.system}.helpers;
 
+    gdb-config = {
+      name = "Launch (GDB)";
+      type = "gdb";
+      request = "launch";
+      program.__raw = ''
+        function()
+            return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. '/', "file")
+        end'';
+      cwd = ''''${workspaceFolder}'';
+      stopOnEntry = false;
+    };
+
+    lldb-config = {
+      name = "Launch (LLDB)";
+      type = "lldb";
+      request = "launch";
+      program.__raw = ''
+        function()
+            return vim.fn.input("Path to executable: ", vim.fn.getcwd() .. '/', "file")
+        end'';
+      cwd = ''''${workspaceFolder}'';
+      stopOnEntry = false;
+    };
+
     # not working
     # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
     sh-config = lib.mkIf pkgs.stdenv.isLinux {
@@ -150,6 +174,15 @@
         # not working
         # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
         sh = lib.optionals pkgs.stdenv.isLinux [sh-config];
+
+        c = [lldb-config] ++ lib.optionals pkgs.stdenv.isLinux [gdb-config];
+
+        cpp =
+          [lldb-config]
+          ++ lib.optionals pkgs.stdenv.isLinux [
+            gdb-config
+            # codelldb-config
+          ];
       };
 
       adapters = {
@@ -157,6 +190,30 @@
           # not working
           # bashdb-5.0-1.1.2/bin/bashdb exited with code: 1
           bashdb = lib.mkIf pkgs.stdenv.isLinux {command = "${lib.getExe pkgs.bashdbInteractive}";};
+
+          cppdbg = {
+            command = "gdb";
+            args = [
+              "-i"
+              "dap"
+            ];
+          };
+
+          gdb = {
+            command = "gdb";
+            args = [
+              "-i"
+              "dap"
+            ];
+          };
+
+          lldb = {
+            command = lib.getExe' pkgs.lldb (
+              if pkgs.stdenv.isLinux
+              then "lldb-dap"
+              else "lldb-vscode"
+            );
+          };
         };
       };
     };
