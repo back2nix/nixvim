@@ -65,6 +65,8 @@ in {
 
     extraConfigLua = ''
       vim.api.nvim_set_keymap("x", "<C-t>", ":po<CR>", { noremap = true })
+
+      require('nvim-highlight-colors').setup({})
     '';
 
     extraPlugins = with pkgs-master.vimPlugins; [
