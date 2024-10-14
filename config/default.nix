@@ -76,6 +76,7 @@ in {
       dressing-nvim
       jupytext-nvim
       treesj # split join
+      nvim-highlight-colors
     ];
     extraPackages = with pkgs-master; [
       fd
