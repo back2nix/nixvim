@@ -435,6 +435,8 @@ in {
             codespell.enable = true;
           };
           formatting = {
+            nixfmt.enable = true;
+            shfmt.enable = true;
             golines = {
               enable = true;
               withArgs = ''
@@ -490,6 +492,7 @@ in {
 
         servers = {
           # Average webdev LSPs
+          # bufls.enable = true;
           golangci-lint-ls.enable = true;
           gopls = {
             enable = true;
