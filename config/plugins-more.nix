@@ -493,7 +493,7 @@ in {
         servers = {
           # Average webdev LSPs
           # bufls.enable = true;
-          golangci-lint-ls.enable = true;
+          # golangci-lint-ls.enable = true;
           gopls = {
             enable = true;
             autostart = true;
