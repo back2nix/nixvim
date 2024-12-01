@@ -29,7 +29,7 @@ in {
 
         prompts = {
           mathproof = {
-            prompt = ''Отвечай пользователю на русском языке'';
+            prompt = "Отвечай пользователю на русском языке";
             model = "mistral";
             inputLabel = "> ";
           };
@@ -47,28 +47,18 @@ in {
           {
             action = "stable_next";
             key = "n";
-            mode = [
-              "n"
-              "x"
-              "o"
-            ];
+            mode = ["n" "x" "o"];
           }
           {
             action = "stable_previous";
             key = "N";
-            mode = [
-              "n"
-              "x"
-              "o"
-            ];
+            mode = ["n" "x" "o"];
           }
           {
             action = "current_word";
             key = "!";
             mode = "n";
-            options = {
-              desc = "Search current word without moving";
-            };
+            options = {desc = "Search current word without moving";};
           }
           {
             action = "in_place";
@@ -115,13 +105,7 @@ in {
             };
           };
           select = {
-            backend = [
-              "telescope"
-              "fzf_lua"
-              "fzf"
-              "builtin"
-              "nui"
-            ];
+            backend = ["telescope" "fzf_lua" "fzf" "builtin" "nui"];
             builtin = {
               mappings = {
                 "<C-c>" = "Close";
@@ -151,9 +135,7 @@ in {
 
       airline = {
         enable = true;
-        settings = {
-          powerline_fonts = true;
-        };
+        settings = {powerline_fonts = true;};
       };
       alpha = {
         enable = true;
@@ -181,12 +163,9 @@ in {
         # settings.current_line_blame = true;
       };
       leap.enable = true;
-      lsp-format.enable = true;
       markdown-preview = {
         enable = true;
-        settings = {
-          auto_close = true;
-        };
+        settings = {auto_close = true;};
       };
 
       # mini.enable = true;
@@ -217,15 +196,11 @@ in {
           width = 40;
           height = 15;
           autoExpandWidth = false;
-          mappings = {
-            "<space>" = "none";
-          };
+          mappings = {"<space>" = "none";};
         };
       };
 
-      nix = {
-        enable = true;
-      };
+      nix = {enable = true;};
 
       notify.enable = true;
       sniprun.enable = true;
@@ -234,9 +209,7 @@ in {
       surround.enable = true;
       hop = {
         enable = true;
-        settings = {
-          keys = "srtnyeiafg";
-        };
+        settings = {keys = "srtnyeiafg";};
       };
 
       telescope = {
@@ -269,33 +242,15 @@ in {
           sorting_strategy = "ascending";
         };
         settings.pickers = {
-          git_files = {
-            disable_devicons = true;
-          };
-          find_files = {
-            disable_devicons = true;
-          };
-          buffers = {
-            disable_devicons = true;
-          };
-          live_grep = {
-            disable_devicons = true;
-          };
-          current_buffer_fuzzy_find = {
-            disable_devicons = true;
-          };
-          lsp_definitions = {
-            disable_devicons = true;
-          };
-          lsp_references = {
-            disable_devicons = true;
-          };
-          diagnostics = {
-            disable_devicons = true;
-          };
-          lsp_dynamic_workspace_symbols = {
-            disable_devicons = true;
-          };
+          git_files = {disable_devicons = true;};
+          find_files = {disable_devicons = true;};
+          buffers = {disable_devicons = true;};
+          live_grep = {disable_devicons = true;};
+          current_buffer_fuzzy_find = {disable_devicons = true;};
+          lsp_definitions = {disable_devicons = true;};
+          lsp_references = {disable_devicons = true;};
+          diagnostics = {disable_devicons = true;};
+          lsp_dynamic_workspace_symbols = {disable_devicons = true;};
         };
         keymaps = {
           # "<leader>f" = "git_files";
@@ -401,7 +356,7 @@ in {
       which-key = {
         enable = true;
         plugins.spelling.enabled = false;
-        triggersNoWait = ["`" "'" "<leader>" "g`" "g'" "\"" "<c-r>" "z=" "<Space>"];
+        triggersNoWait = ["`" "'" "<leader>" "g`" "g'" ''"'' "<c-r>" "z=" "<Space>"];
         disable = {
           buftypes = [];
           filetypes = [];
@@ -415,85 +370,15 @@ in {
       # ERROR: [Hydra.nvim] Option "hint.border" has been deprecated and will be removed on 2024-02-01 -- See hint.float_opts
       lastplace.enable = true;
 
-      none-ls = {
-        enable = true;
-        enableLspFormat = true;
-        settings = {
-          update_in_insert = false;
-          tempDir = "/tmp";
-        };
-        sources = {
-          code_actions = {
-            gitsigns.enable = true;
-            statix.enable = true;
-            gomodifytags.enable = true;
-            impl.enable = true;
-          };
-          diagnostics = {
-            statix.enable = true;
-            yamllint.enable = true;
-            codespell.enable = true;
-          };
-          formatting = {
-            nixfmt.enable = true;
-            shfmt.enable = true;
-            golines = {
-              enable = true;
-              withArgs = ''
-                {
-                  extra_args = { "--no-reformat-tags", "--max-len=128" },
-                }
-              '';
-            };
-            gofumpt.enable = true;
-            # goimports.enable = true;
-            goimports_reviser.enable = true;
-
-            sqlformat.enable = true;
-
-            # Nix
-            alejandra.enable = true;
-
-            # Python
-            blackd.enable = true;
-
-            black = {
-              enable = true;
-              withArgs = ''
-                {
-                  extra_args = { "--fast" },
-                }
-              '';
-            };
-
-            # JS
-            # prettier = {
-            #   enable = true;
-            #   disableTsServerFormatter = true;
-            #   withArgs = ''
-            #     {
-            #       extra_args = { "--single-quote" },
-            #     }
-            #   '';
-            # };
-            stylua.enable = true;
-            # yamlfmt.enable = true;
-          };
-        };
-      };
-
+      # Language server
+      lsp-format.enable = true;
       typescript-tools = {
         enable = true;
         settings.tsserverPlugins = ["@vue/typescript-plugin"];
       };
-      # Language server
       lsp = {
         enable = true;
-
         servers = {
-          # Average webdev LSPs
-          # bufls.enable = true;
-          # golangci-lint-ls.enable = true;
           gopls = {
             enable = true;
             autostart = true;
@@ -550,56 +435,103 @@ in {
                   usePlaceholders = true;
                   completeUnimported = true;
                   staticcheck = true;
-                  directoryFilters = ["-.git" "-.vscode" "-.idea" "-.vscode-test" "-node_modules"];
+                  directoryFilters = [
+                    "-.git"
+                    "-.vscode"
+                    "-.idea"
+                    "-.vscode-test"
+                    "-node_modules"
+                  ];
                   semanticTokens = true;
                 };
               };
             };
           };
-          svelte.enable = false; # Svelte
-          vuels.enable = false; # Vue
-          tsserver.enable = true; # TS/JS
-          tsserver.filetypes = [
-            "javascript"
-            "javascriptreact"
-            "javascript.jsx"
-            "typescript"
-            "typescriptreact"
-            "typescript.tsx"
-            "vue"
-          ];
-          cssls.enable = true; # CSS
-          tailwindcss.enable = true; # TailwindCSS
-          html.enable = true; # HTML
-          astro.enable = true; # AstroJS
-          # phpactor.enable = true; # PHP
+          svelte.enable = false;
+          vuels.enable = false;
+          tsserver = {
+            enable = true;
+            filetypes = [
+              "javascript"
+              "javascriptreact"
+              "javascript.jsx"
+              "typescript"
+              "typescriptreact"
+              "typescript.tsx"
+              "vue"
+            ];
+          };
+          cssls.enable = true;
+          tailwindcss.enable = true;
+          html.enable = true;
+          astro.enable = true;
           jsonls.enable = true;
-
-          # Python
           pyright.enable = true;
-          # Markdown
           marksman.enable = true;
-          # Nix
           nil-ls.enable = true;
-          # Docker
+          nixd.enable = true;
           dockerls.enable = true;
-          # Bash
           bashls.enable = true;
-          # C/C++
           clangd.enable = true;
-          # C#
           csharp-ls.enable = true;
-          # Lua
+          eslint.enable = true;
+          terraformls.enable = true;
+          yamlls.enable = true;
           lua-ls = {
             enable = true;
             settings.telemetry.enable = false;
           };
-          # Rust
-          # rust-analyzer = {
-          #   enable = true;
-          #   installRustc = true;
-          #   installCargo = true;
-          # };
+        };
+        keymaps = {
+          silent = true;
+          lspBuf = {
+            gd = {
+              action = "definition";
+              desc = "Goto Definition";
+            };
+            gr = {
+              action = "references";
+              desc = "Goto References";
+            };
+            gD = {
+              action = "declaration";
+              desc = "Goto Declaration";
+            };
+            gI = {
+              action = "implementation";
+              desc = "Goto Implementation";
+            };
+            gT = {
+              action = "type_definition";
+              desc = "Type Definition";
+            };
+            K = {
+              action = "hover";
+              desc = "Hover";
+            };
+            "<leader>cw" = {
+              action = "workspace_symbol";
+              desc = "Workspace Symbol";
+            };
+            "<leader>cr" = {
+              action = "rename";
+              desc = "Rename";
+            };
+          };
+          diagnostic = {
+            "<leader>cd" = {
+              action = "open_float";
+              desc = "Line Diagnostics";
+            };
+            "[d" = {
+              action = "goto_next";
+              desc = "Next Diagnostic";
+            };
+            "]d" = {
+              action = "goto_prev";
+              desc = "Previous Diagnostic";
+            };
+          };
         };
       };
 
@@ -674,50 +606,6 @@ in {
       cmp-nvim-lsp-signature-help.enable = true;
       # cmp-tabby.host = "http://127.0.0.1:8080";
       # vim-lspconfig.enable = true;
-      conform-nvim = {
-        enable = true;
-
-        formattersByFt = {
-          "*" = ["codespell"];
-          "_" = ["trim_whitespace"];
-          go = [
-            # "goimports"
-            "goimports_reviser"
-            # "golines"
-            # "gofmt"
-            "gofumpt"
-          ];
-          javascript = [["prettierd" "prettier"]];
-          json = ["jq"];
-          lua = ["stylua"];
-          nix = ["alejandra"];
-          python = ["isort" "black"];
-          rust = ["rustfmt"];
-          sh = ["shfmt"];
-          terraform = ["terraform_fmt"];
-        };
-
-        formatOnSave = ''
-          function(bufnr)
-          local ignore_filetypes = { "helm" }
-          if vim.tbl_contains(ignore_filetypes, vim.bo[bufnr].filetype) then
-          return
-          end
-
-          -- Disable with a global or buffer-local variable
-          if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
-          return
-          end
-
-          -- Disable autoformat for files in a certain path
-          local bufname = vim.api.nvim_buf_get_name(bufnr)
-          if bufname:match("/node_modules/") then
-          return
-          end
-          return { timeout_ms = 1000, lsp_fallback = true }
-          end
-        '';
-      };
     };
   };
 }

@@ -25,6 +25,7 @@ in {
     ./plugins/oil.nix
     ./plugins/git-worktree.nix
     ./plugins/spell.nix
+    # ./plugins/lsp/lsp.nix
     # ./plugins/kaf.nvim.nix
 
     ./plugins/ui/telescope.nix
@@ -48,8 +49,7 @@ in {
     # ./plugins/treesitter/treesitter-textobjects.nix
   ];
 
-  options = {
-  };
+  options = {};
   config = {
     # colorschemes.gruvbox.enable = true;
     # colorschemes.dracula.enable = true;
@@ -80,11 +80,7 @@ in {
       treesj # split join
       nvim-highlight-colors
     ];
-    extraPackages = with pkgs-master; [
-      fd
-      ripgrep
-      sqls
-    ];
+    extraPackages = with pkgs-master; [fd ripgrep sqls];
     globals = {
       mapleader = " ";
       maplocalleader = ",";
