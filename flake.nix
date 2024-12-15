@@ -8,19 +8,23 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     nvim-spell-ru-utf8-dictionary = {
-      url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.spl";
+      # url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.spl";
+      url = "path:./spell/ru.utf-8/ru.utf-8.spl";
       flake = false;
     };
     nvim-spell-ru-utf8-suggestions = {
-      url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.sug";
+      # url = "http://ftp.vim.org/vim/runtime/spell/ru.utf-8.sug";
+      url = "path:./spell/ru.utf-8/ru.utf-8.sug";
       flake = false;
     };
     nvim-spell-en-utf8-dictionary = {
-      url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl";
+      # url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl";
+      url = "path:./spell/en.utf-8/en.utf-8.spl";
       flake = false;
     };
     nvim-spell-en-utf8-suggestions = {
-      url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug";
+      # url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug";
+      url = "path:./spell/en.utf-8/en.utf-8.sug";
       flake = false;
     };
   };
