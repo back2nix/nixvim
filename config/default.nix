@@ -21,6 +21,7 @@ in {
     ./plugins/mason-nvim.nix
     ./plugins/persistent-breakpoints.nvim.nix
     ./plugins/git-blame.nvim.nix
+    ./plugins/telescope-hierarchy.nix
     ./plugins/buffer.nix
     ./plugins/oil.nix
     ./plugins/git-worktree.nix

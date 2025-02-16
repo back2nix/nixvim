@@ -882,6 +882,22 @@
           silent = true;
         };
       }
+      {
+        key = "<leader>si";
+        action = "<cmd>Telescope hierarchy incoming_calls<cr>";
+        options = {
+          desc = "LSP: [S]earch [I]ncoming Calls";
+          silent = true;
+        };
+      }
+      {
+        key = "<leader>so";
+        action = "<cmd>Telescope hierarchy outgoing_calls<cr>";
+        options = {
+          desc = "LSP: [S]earch [O]utgoing Calls";
+          silent = true;
+        };
+      }
     ];
   };
 }
