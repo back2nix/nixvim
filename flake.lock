@@ -275,53 +275,49 @@
     "nvim-spell-en-utf8-dictionary": {
       "flake": false,
       "locked": {
-        "lastModified": 1,
         "narHash": "sha256-D7PU4+gCrrshtSQTg3WGzk0UaD9mzpb1EdjW5/O13nM=",
-        "path": "./spell/en.utf-8/en.utf-8.spl",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/en.utf-8.spl"
       },
       "original": {
-        "path": "./spell/en.utf-8/en.utf-8.spl",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/en.utf-8.spl"
       }
     },
     "nvim-spell-en-utf8-suggestions": {
       "flake": false,
       "locked": {
-        "lastModified": 1,
         "narHash": "sha256-Qj81zFWCP8nM9kqgYm1B/hhRmk3NxhQoV8xpFbjS6Pc=",
-        "path": "./spell/en.utf-8/en.utf-8.sug",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/en.utf-8.sug"
       },
       "original": {
-        "path": "./spell/en.utf-8/en.utf-8.sug",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/en.utf-8.sug"
       }
     },
     "nvim-spell-ru-utf8-dictionary": {
       "flake": false,
       "locked": {
-        "lastModified": 1,
         "narHash": "sha256-+qR5FsmYK/332YyxfyjqQ6zHaygCoTtM1p2Okza4YLY=",
-        "path": "./spell/ru.utf-8/ru.utf-8.spl",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/ru.utf-8.spl"
       },
       "original": {
-        "path": "./spell/ru.utf-8/ru.utf-8.spl",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/ru.utf-8.spl"
       }
     },
     "nvim-spell-ru-utf8-suggestions": {
       "flake": false,
       "locked": {
-        "lastModified": 1,
         "narHash": "sha256-yzT/KlhbkxouHfq48JtAMnnB+htAERv8fnGp2PKQFJU=",
-        "path": "./spell/ru.utf-8/ru.utf-8.sug",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/ru.utf-8.sug"
       },
       "original": {
-        "path": "./spell/ru.utf-8/ru.utf-8.sug",
-        "type": "path"
+        "type": "file",
+        "url": "https://github.com/back2nix/nixvim/releases/download/0.0.0/ru.utf-8.sug"
       }
     },
     "root": {
