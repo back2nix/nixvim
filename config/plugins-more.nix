@@ -303,12 +303,12 @@ in {
             "gosum"
             "gowork"
             "java"
-            "javascript"
-            "typescript"
             "html"
             "css"
             "scss"
             "vue"
+            "javascript"
+            "typescript"
           ];
         };
         grammarPackages = with config.plugins.treesitter.package.builtGrammars; [
@@ -335,7 +335,6 @@ in {
           graphql
           hcl
           heex
-          javascript
           json
           lua
           markdown
@@ -345,8 +344,11 @@ in {
           starlark
           terraform
           toml
-          typescript
           yaml
+
+          vue
+          javascript
+          typescript
         ];
 
         settings.incrementalSelection.enable = true;
