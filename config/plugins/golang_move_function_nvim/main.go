@@ -109,7 +109,7 @@ func moveCode(v *nvim.Nvim, args []string) error {
 	}
 
 	// Write the code to the file
-	if _, err := f.WriteString(codeText + "\n"); err != nil {
+	if _, err := f.WriteString("\n" + codeText); err != nil {
 		return fmt.Errorf("Failed to write code to destination file: %v", err)
 	}
 

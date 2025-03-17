@@ -33,7 +33,7 @@ in {
     }
     {
       mode = ["n"];
-      key = "<leader>r";
+      key = "<leader>mm";
       action = ":RepeatMoveCode<CR>";
       options = {
         desc = "Repeat move";
