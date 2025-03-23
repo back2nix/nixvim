@@ -26,7 +26,6 @@ in {
     ./plugins/oil.nix
     ./plugins/git-worktree.nix
     ./plugins/spell.nix
-    # ./plugins/lsp/lsp.nix
     # ./plugins/kaf.nvim.nix
 
     ./plugins/ui/telescope.nix
@@ -81,7 +80,15 @@ in {
       treesj # split join
       nvim-highlight-colors
     ];
-    extraPackages = with pkgs-master; [fd ripgrep sqls];
+    extraPackages = with pkgs-master; [
+      fd
+      ripgrep
+      sqls
+      prettierd
+      nixfmt-rfc-style
+      stylua
+      ruff
+    ];
     globals = {
       mapleader = " ";
       maplocalleader = ",";

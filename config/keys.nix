@@ -2,6 +2,15 @@
   config = {
     keymaps = [
       {
+        mode = "n";
+        key = "<leader>ff";
+        action = "lua require('conform').format()";
+        options = {
+          desc = "Format current buffer";
+          silent = true;
+        };
+      }
+      {
         key = "<C-Space>";
         action = "lua require('cmp').mapping.complete()";
         options = {

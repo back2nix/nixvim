@@ -373,7 +373,44 @@ in {
       lastplace.enable = true;
 
       # Language server
-      lsp-format.enable = true;
+      lsp-format.enable = false;
+
+      conform-nvim = {
+        enable = true;
+
+        formattersByFt = {
+          "*" = ["codespell"];
+          "_" = [
+            "squeeze_blanks"
+            "trim_whitespace"
+            "trim_newlines"
+          ];
+
+          go = ["gofumpt" "goimports"];
+
+          css = [ "prettierd" ];
+          html = [ "prettierd" ];
+          javascript = [ "prettierd" ];
+          typescript = [ "prettierd" ];
+          json = [ "prettierd" ];
+          markdown = [ "prettierd" ];
+          scss = [ "prettierd" ];
+          toml = [ "prettierd" ];
+          yaml = [ "prettierd" ];
+          vue = [ "prettierd" ];
+
+          lua = ["stylua"];
+          nix = ["nixpkgs_fmt"];
+          python = ["ruff"];
+          rust = ["rustfmt"];
+          cpp = ["clang_format"];
+          c = ["clang_format"];
+        };
+
+        logLevel = "warn";
+        notifyOnError = true;
+      };
+
       typescript-tools = {
         enable = true;
         settings.tsserverPlugins = ["@vue/typescript-plugin"];
