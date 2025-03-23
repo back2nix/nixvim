@@ -171,12 +171,6 @@ in {
       # mini.enable = true;
       navbuddy.enable = true;
       # neorg.enable = true;
-      # File tree
-      # nvim-tree = {
-      #   enable = true;
-      #   diagnostics.enable = true;
-      #   git.enable = true;
-      # };
       neo-tree = {
         enable = true;
         enableDiagnostics = true;
