@@ -283,6 +283,7 @@ in {
       treesitter = {
         enable = true;
         settings = {
+          highlight.enable = true;
           indent.enable = true;
           ensureInstalled = [
             "rust"
@@ -303,6 +304,7 @@ in {
             "vue"
             "javascript"
             "typescript"
+            "just"
           ];
         };
         grammarPackages = with config.plugins.treesitter.package.builtGrammars; [
@@ -343,6 +345,7 @@ in {
           vue
           javascript
           typescript
+          just
         ];
 
         settings.incrementalSelection.enable = true;
@@ -399,6 +402,7 @@ in {
           rust = ["rustfmt"];
           cpp = ["clang_format"];
           c = ["clang_format"];
+          just = ["just"];
         };
 
         logLevel = "warn";
