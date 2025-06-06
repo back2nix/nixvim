@@ -85,9 +85,10 @@ in {
       ripgrep
       sqls
       prettierd
-      nixfmt-rfc-style
+      # nixfmt-rfc-style
       stylua
       ruff
+      alejandra
     ];
     globals = {
       mapleader = " ";

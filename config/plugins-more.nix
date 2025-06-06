@@ -397,7 +397,7 @@ in {
           vue = [ "prettierd" ];
 
           lua = ["stylua"];
-          nix = ["nixpkgs_fmt"];
+          nix = ["alejandra"];
           python = ["ruff"];
           rust = ["rustfmt"];
           cpp = ["clang_format"];
