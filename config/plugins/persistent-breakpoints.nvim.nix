@@ -1,5 +1,4 @@
 {pkgs, ...}: let
-  # https://github.com/kranners/jimbo/blob/bff324d165f4bbcba7d265c00aea4e72c0eec8b7/shared/modules/nixvim/plugins/default.nix#L20
   persistent-breakpoints-nvim = pkgs.vimUtils.buildVimPlugin {
     pname = "persistent-breakpoints.nvim";
     version = "2024-05-04";
@@ -10,10 +9,15 @@
       sha256 = "sha256-euwc9XD02g8W52Z8SzjSInLnatS3aGLY44Frvd+yDTc=";
     };
     meta.homepage = "https://github.com/back2nix/persistent-breakpoints.nvim";
+
+    # ----> ДОБАВЬТЕ ЭТУ СТРОКУ <----
+    # Отключаем проверку, так как она не может найти nvim-dap во время сборки.
+    doCheck = false;
   };
 in {
   extraPlugins = [persistent-breakpoints-nvim];
 
+  # Остальная часть файла остается без изменений
   keymaps = [
     {
       mode = ["n"];

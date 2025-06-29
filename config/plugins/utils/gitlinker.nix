@@ -9,9 +9,18 @@
         rev = "cc59f732f3d043b626c8702cb725c82e54d35c25";
         hash = "sha256-zrHvJSROjrDC5XtepOwuDrzrJG2jpnF5NJ05Iwd6DwA=";
       };
+
+      # ----> ДОБАВЬТЕ ЭТУ СТРОКУ <----
+      # Отключаем проверку зависимостей во время сборки.
+      # Это безопасно, так как plenary.nvim будет доступен во время выполнения.
+      doCheck = false;
     })
+
+    # Оставляем plenary здесь для времени выполнения (runtime)
     pkgs.vimPlugins.plenary-nvim
   ];
+
+  # Остальная часть файла остается без изменений
   extraConfigLua = ''
     require("gitlinker").setup({
       opts = {

@@ -13,9 +13,14 @@ in {
       enableTelescope = true;
     };
 
-    which-key.registrations."<leader>"."g"."W" = mkIf (cfg.enableTelescope && cfg.enable) {
-      name = "󰙅 Worktree";
-    };
+    # ИСПРАВЛЕНО: `registrations` устарело. Используем `settings.spec` для определения группы.
+    which-key.settings.spec = mkIf (cfg.enableTelescope && cfg.enable) [
+      {
+        mode = "n";
+        key = "<leader>gW";
+        group = "󰙅 Worktree";
+      }
+    ];
   };
 
   keymaps = mkIf cfg.enableTelescope [

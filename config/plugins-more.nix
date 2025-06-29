@@ -6,26 +6,13 @@
   lib,
   ...
 }: let
-  # myplugin = pkgs.callPackage ./plugins/example_golang_plugin/default.nix {};
 in {
   config = {
-    # extraPlugins = [
-    #   myplugin
-    # ];
     plugins = {
-      # nvim-ufo = { # slit join
-      #   enable = true;
-      # };
-      # git-worktree = {
-      #   enable = true;
-      #   enableTelescope = true;
-      # };
       ollama = {
         enable = true;
-        # ssh -L 11434:0.0.0.0:11434 home_desktop -N
         url = "http://127.0.0.1:11434";
         model = "llama3";
-        # model = "codestral";
 
         prompts = {
           mathproof = {
@@ -40,7 +27,6 @@ in {
       indent-blankline.enable = true;
       jupytext.enable = true;
       marks.enable = true;
-      # magma-nvim.enable = true;
       improved-search = {
         enable = true;
         keymaps = [
@@ -120,14 +106,14 @@ in {
 
       debugprint = {
         enable = true;
-        # extraOptions.keymaps =
       };
 
       cmp-spell.enable = true;
       barbar.enable = true;
       auto-session = {
         enable = true;
-        extraOptions = {
+        # ИСПРАВЛЕНО: extraOptions -> settings
+        settings = {
           auto_save_enabled = true;
           auto_restore_enabled = true;
         };
@@ -135,24 +121,28 @@ in {
 
       airline = {
         enable = true;
-        settings = {powerline_fonts = true;};
+        settings = {powerline_fonts = 1;};
       };
       alpha = {
         enable = true;
         theme = "dashboard";
-        iconsEnabled = true;
+        # ИСПРАВЛЕНО: iconsEnabled - устаревшая опция и удалена
       };
+
+      # ИСПРАВЛЕНО: web-devicons теперь нужно включать явно
+      web-devicons.enable = true;
 
       bufferline = {
         enable = true;
-        diagnostics = "nvim_lsp";
-        numbers = "ordinal";
+        # ИСПРАВЛЕНО: опции перемещены в settings.options
+        settings.options = {
+          diagnostics = "nvim_lsp";
+          numbers = "ordinal";
+        };
       };
 
       comment.enable = true;
-      # comment-nvim.enable = true;
       commentary.enable = true;
-      # https://github.com/sindrets/diffview.nvim
       diffview = {
         enable = true;
         diffBinaries = true;
@@ -160,17 +150,14 @@ in {
       fugitive.enable = true;
       gitsigns = {
         enable = true;
-        # settings.current_line_blame = true;
       };
       leap.enable = true;
       markdown-preview = {
         enable = true;
-        settings = {auto_close = true;};
+        settings = {auto_close = 1;};
       };
 
-      # mini.enable = true;
       navbuddy.enable = true;
-      # neorg.enable = true;
       neo-tree = {
         enable = true;
         enableDiagnostics = true;
@@ -178,7 +165,7 @@ in {
         enableModifiedMarkers = true;
         enableRefreshOnWrite = true;
         closeIfLastWindow = true;
-        popupBorderStyle = "rounded"; # Type: null or one of “NC”, “double”, “none”, “rounded”, “shadow”, “single”, “solid” or raw lua code
+        popupBorderStyle = "rounded";
         buffers = {
           bindToCwd = false;
           followCurrentFile = {
@@ -198,9 +185,8 @@ in {
 
       notify.enable = true;
       sniprun.enable = true;
-      # https://github.com/kylechui/nvim-surround
-      # https://github.com/tpope/vim-surround
-      surround.enable = true;
+      # ИСПРАВЛЕНО: surround -> vim-surround
+      vim-surround.enable = true;
       hop = {
         enable = true;
         settings = {keys = "srtnyeiafg";};
@@ -220,7 +206,6 @@ in {
           };
         };
         settings.defaults = {
-          # file_ignore_patterns = [".git" ".direnv" "target" "node_modules"];
           vimgrep_arguments = [
             "${pkgs.ripgrep}/bin/rg"
             "--hidden"
@@ -247,15 +232,7 @@ in {
           lsp_dynamic_workspace_symbols = {disable_devicons = true;};
         };
         keymaps = {
-          # "<leader>f" = "git_files";
-          # "<leader>F" = "find_files";
-          # "gb" = "buffers";
-          # "<leader><space>" = "live_grep";
-          # "<leader>/" = "current_buffer_fuzzy_find";
-          # "gd" = "lsp_definitions";
           "gI" = "lsp_incoming_calls";
-          # "gi" = "lsp_implementations";
-          # "gt" = "lsp_type_definition";
           "<leader>fd" = "diagnostics";
           "<leader>s" = "lsp_dynamic_workspace_symbols";
         };
@@ -268,7 +245,8 @@ in {
 
       todo-comments = {
         enable = true;
-        colors = {
+        # ИСПРАВЛЕНО: colors -> settings.colors
+        settings.colors = {
           error = ["DiagnosticError" "ErrorMsg" "#DC2626"];
           warning = ["DiagnosticWarn" "WarningMsg" "#FBBF24"];
           info = ["DiagnosticInfo" "#2563EB"];
@@ -279,7 +257,6 @@ in {
       };
 
       floaterm.enable = true;
-      # https://github.com/jackyliu16/home-manager/blob/f792c1c57e240d24064850c6221719ad758c6c6b/vimAndNeovim/nixvim.nix#L97
       treesitter = {
         enable = true;
         settings = {
@@ -317,11 +294,9 @@ in {
           cpp
           bash
           html
-          # help
           latex
           python
           rust
-
           css
           dockerfile
           eex
@@ -341,7 +316,6 @@ in {
           terraform
           toml
           yaml
-
           vue
           javascript
           typescript
@@ -354,64 +328,68 @@ in {
       trouble.enable = true;
       which-key = {
         enable = true;
-        plugins.spelling.enabled = false;
-        triggersNoWait = ["`" "'" "<leader>" "g`" "g'" ''"'' "<c-r>" "z=" "<Space>"];
-        disable = {
-          buftypes = [];
-          filetypes = [];
-        };
-        triggersBlackList = {
-          i = ["j" "k"];
-          v = ["j" "k"];
+        # ИСПРАВЛЕНО: Все опции переехали в `settings` и переименованы в snake_case
+        settings = {
+          plugins.spelling.enabled = false;
+          triggers_no_wait = ["`" "'" "<leader>" "g`" "g'" ''"'' "<c-r>" "z=" "<Space>"];
+          disable = {
+            bt = [];
+            ft = [];
+          };
+          triggers_black_list = {
+            i = ["j" "k"];
+            v = ["j" "k"];
+          };
         };
       };
-      # multicursors.enable = true;
-      # ERROR: [Hydra.nvim] Option "hint.border" has been deprecated and will be removed on 2024-02-01 -- See hint.float_opts
       lastplace.enable = true;
 
-      # Language server
       lsp-format.enable = false;
 
       conform-nvim = {
         enable = true;
 
-        formattersByFt = {
-          "*" = ["codespell"];
-          "_" = [
-            "squeeze_blanks"
-            "trim_whitespace"
-            "trim_newlines"
-          ];
+        # ИСПРАВЛЕНО: Опции переехали в `settings` и переименованы в snake_case
+        settings = {
+          formatters_by_ft = {
+            "*" = ["codespell"];
+            "_" = [
+              "squeeze_blanks"
+              "trim_whitespace"
+              "trim_newlines"
+            ];
 
-          go = ["gofumpt" "goimports"];
+            go = ["gofumpt" "goimports"];
 
-          css = [ "prettierd" ];
-          html = [ "prettierd" ];
-          javascript = [ "prettierd" ];
-          typescript = [ "prettierd" ];
-          json = [ "prettierd" ];
-          markdown = [ "prettierd" ];
-          scss = [ "prettierd" ];
-          toml = [ "prettierd" ];
-          yaml = [ "prettierd" ];
-          vue = [ "prettierd" ];
+            css = [ "prettierd" ];
+            html = [ "prettierd" ];
+            javascript = [ "prettierd" ];
+            typescript = [ "prettierd" ];
+            json = [ "prettierd" ];
+            markdown = [ "prettierd" ];
+            scss = [ "prettierd" ];
+            toml = [ "prettierd" ];
+            yaml = [ "prettierd" ];
+            vue = [ "prettierd" ];
 
-          lua = ["stylua"];
-          nix = ["alejandra"];
-          python = ["ruff"];
-          rust = ["rustfmt"];
-          cpp = ["clang_format"];
-          c = ["clang_format"];
-          just = ["just"];
+            lua = ["stylua"];
+            nix = ["alejandra"];
+            python = ["ruff"];
+            rust = ["rustfmt"];
+            cpp = ["clang_format"];
+            c = ["clang_format"];
+            just = ["just"];
+          };
+
+          log_level = "warn";
+          notify_on_error = true;
         };
-
-        logLevel = "warn";
-        notifyOnError = true;
       };
 
       typescript-tools = {
         enable = true;
-        settings.tsserverPlugins = ["@vue/typescript-plugin"];
+        # ИСПРАВЛЕНО: Опция переехала в settings.settings и переименована в snake_case
+        settings.settings.tsserver_plugins = ["@vue/typescript-plugin"];
       };
       lsp = {
         enable = true;
@@ -456,7 +434,7 @@ in {
                     rangeVariableTypes = true;
                   };
                   analyses = {
-                    fieldalignment = true;
+                    # fieldalignment = true;
                     nilness = true;
                     unusedparams = true;
                     unusedwrite = true;
@@ -486,7 +464,8 @@ in {
           };
           svelte.enable = false;
           vuels.enable = false;
-          tsserver = {
+          # ИСПРАВЛЕНО: tsserver -> ts_ls
+          ts_ls = {
             enable = true;
             filetypes = [
               "javascript"
@@ -505,16 +484,19 @@ in {
           jsonls.enable = true;
           pyright.enable = true;
           marksman.enable = true;
-          nil-ls.enable = true;
+          # ИСПРАВЛЕНО: nil-ls -> nil_ls
+          nil_ls.enable = true;
           nixd.enable = true;
           dockerls.enable = true;
           bashls.enable = true;
           clangd.enable = true;
-          csharp-ls.enable = true;
+          # ИСПРАВЛЕНО: csharp-ls -> csharp_ls
+          csharp_ls.enable = true;
           eslint.enable = true;
           terraformls.enable = true;
           yamlls.enable = true;
-          lua-ls = {
+          # ИСПРАВЛЕНО: lua-ls -> lua_ls
+          lua_ls = {
             enable = true;
             settings.telemetry.enable = false;
           };
@@ -538,7 +520,6 @@ in {
         };
       };
 
-      # luasnip.enable = true;
       cmp = {
         enable = true;
 
@@ -588,15 +569,12 @@ in {
             buffer = "[buffer]";
             dap = "[dap]";
             treesitter = "[treesitter]";
-            # neorg = "[neorg]";
             cmp_tabby = "[Tabby]";
             go_pkgs = "[pkgs]";
           };
         };
       };
 
-      # Dashboard
-      # cmp.enable = true;
       cmp-treesitter.enable = true;
       cmp-nvim-lsp.enable = true;
       cmp-path.enable = true;
@@ -607,8 +585,6 @@ in {
       cmp_luasnip.enable = true;
       cmp-cmdline.enable = false;
       cmp-nvim-lsp-signature-help.enable = true;
-      # cmp-tabby.host = "http://127.0.0.1:8080";
-      # vim-lspconfig.enable = true;
     };
   };
 }

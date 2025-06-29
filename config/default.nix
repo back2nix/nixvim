@@ -97,7 +97,7 @@ in {
 
     opts = {
       timeoutlen = 100;
-      background = "";
+      # background = "";
       updatetime = 100;
       grepprg = "rg --vimgrep";
       grepformat = "%f:%l:%c:%m";

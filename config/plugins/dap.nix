@@ -3,6 +3,7 @@
   inputs,
   lib,
   pkgs,
+  helpers,
   ...
 }: {
   options = {
@@ -21,7 +22,8 @@
   };
 
   config = let
-    helpers = inputs.nixvim.lib.${pkgs.system}.helpers;
+    # ИСПРАВЛЕНО: Путь к helpers изменился в nixvim
+    # helpers = inputs.nixvim.lib.helpers;
 
     gdb-args-config = {
       name = "Launch (GDB) with args";
@@ -90,29 +92,6 @@
   in {
     plugins.dap = {
       enable = true;
-      # signs = {
-      #   dapBreakpoint = {
-      #     text = "🟢"; # ● 🟩
-      #     texthl = "DapBreakpoint";
-      #   };
-      #   dapBreakpointCondition = {
-      #     text = "⚡"; # 🟦
-      #     texthl = "DapBreakpointCondition";
-      #   };
-      #   dapLogPoint = {
-      #     text = "📝"; # 🖊️ ◆ 🔵 🔴 🟣 🟡
-      #     texthl = "DapLogPoint";
-      #   };
-      #   dapBreakpointRejected = {
-      #     text = "❌"; # 🟥
-      #     texthl = "DiagnosticError";
-      #   };
-      #   #               
-      #   dapStopped = {
-      #     text = "→"; # ▶️ ⏸️ ⏹️ ⏺️ ⏬🔽🎦📎🔗📌
-      #     texthl = "DapStopped"; # ▶️ ⏸️ ⏯️ ⏹️ ⏺️ ⏭️ ⏮️
-      #   };
-      # };
       signs = {
         dapBreakpoint = {
           text = " ";
@@ -122,10 +101,6 @@
           text = " ";
           texthl = "DapBreakpointCondition";
         };
-        # dapBreakpointRejected = {
-        #   text = " ";
-        #   texthl = "DapBreakpointRejected";
-        # };
         dapLogPoint = {
           text = "◆";
           texthl = "DapLogPoint";
@@ -139,55 +114,8 @@
           texthl = "DapBreakpointRejected";
         };
       };
-      extensions = {
-        dap-ui = {
-          enable = true;
-          controls.enabled = true;
-          floating.mappings = {
-            close = ["<ESC>" "q"];
-          };
-        };
-        dap-virtual-text = {
-          enable = true;
-        };
-        dap-go = {
-          enable = true;
-          dapConfigurations = [
-            {
-              type = "go";
-              name = "Attach remote";
-              mode = "remote";
-              request = "attach";
-            }
-            # {
-            #   type = "go";
-            #   name = "Launch Prog";
-            #   request = "launch";
-            #   program = "\${workspaceFolder}/cmd/prog";
-            #   # env = {
-            #   #   CGO_ENABLED = 0;
-            #   # };
-            #   args = [
-            #     "--arg0"
-            #     "--arg1"
-            #     "7080"
-            #   ];
-            #   envFile = "\${workspaceFolder}/.env";
-            #   preLaunchTask = "Build prog";
-            #   postDebugTask = "Stop prog";
-            # }
-          ];
-          delve = {
-            path = "dlv";
-            initializeTimeoutSec = 20;
-            port = "38697";
-            # args = [];
-            buildFlags = "";
-            # buildFlags = ''-ldflags "-X 'gitthub.ru/back2nix/placebo/internal/app.Name=myapp' -tags=debug'';
-          };
-        };
-        dap-python.enable = true;
-      };
+      # ИСПРАВЛЕНО: Блок `extensions` устарел. Плагины теперь настраиваются на верхнем уровне.
+      # Конфигурация для dap-ui, dap-go и т.д. перенесена ниже.
 
       configurations = {
         # not working
@@ -238,7 +166,46 @@
       };
     };
 
-    plugins.lualine.sections.lualine_x = lib.mkOrder 900 [
+    # ИСПРАВЛЕНО: Плагины-расширения для dap теперь настраиваются как плагины верхнего уровня.
+    plugins.dap-ui = {
+      enable = true;
+      settings = {
+        controls.enabled = true;
+        floating.mappings = {
+          close = ["<ESC>" "q"];
+        };
+      };
+    };
+
+    plugins.dap-virtual-text.enable = true;
+
+    plugins.dap-python.enable = true;
+
+    plugins.dap-go = {
+      enable = true;
+      settings = {
+        # ИСПРАВЛЕНО: dapConfigurations -> dap_configurations
+        dap_configurations = [
+          {
+            type = "go";
+            name = "Attach remote";
+            mode = "remote";
+            request = "attach";
+          }
+        ];
+        delve = {
+          # ИСПРАВЛЕНО: Опции переименованы в snake_case
+          path = "dlv";
+          initialize_timeout_sec = 20;
+          port = "38697";
+          build_flags = "";
+        };
+      };
+    };
+
+
+    # ИСПРАВЛЕНО: `sections` теперь находится внутри `settings`
+    plugins.lualine.settings.sections.lualine_x = lib.mkOrder 900 [
       {
         extraConfig.__raw = ''
           {
@@ -311,15 +278,6 @@
           silent = true;
         };
       }
-      # {
-      #   key = "<leader>dp";
-      #   action = ":lua require('dap').set_breakpoint(nil, nil, vim.fn.input('Log point message: '))<CR>";
-      #   options = {
-      #     # desc = "Pause debug";
-      #     desc = "DapLogPoint";
-      #     silent = true;
-      #   };
-      # }
       {
         key = "<F6>";
         action = ":lua require('dap').pause()<CR>";
@@ -424,11 +382,6 @@
           silent = true;
         };
       }
-      # {
-      #   key = "<leader>dE";
-      #   action = ":lua require('dap.ui).widgets'.hover()<CR>";
-      #   options = { desc = "Evaluate expression"; silent = true; };
-      # }
       {
         key = "<leader>dR";
         action = ":lua require('dap').repl.toggle()<CR>";
@@ -486,6 +439,5 @@
         };
       }
     ];
-    plugins.which-key.registrations."<leader>d".name = "+debug";
   };
 }
