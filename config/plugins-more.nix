@@ -361,16 +361,16 @@ in {
 
             go = ["gofumpt" "goimports"];
 
-            css = [ "prettierd" ];
-            html = [ "prettierd" ];
-            javascript = [ "prettierd" ];
-            typescript = [ "prettierd" ];
-            json = [ "prettierd" ];
-            markdown = [ "prettierd" ];
-            scss = [ "prettierd" ];
-            toml = [ "prettierd" ];
-            yaml = [ "prettierd" ];
-            vue = [ "prettierd" ];
+            css = ["prettierd"];
+            html = ["prettierd"];
+            javascript = ["prettierd"];
+            typescript = ["prettierd"];
+            json = ["prettierd"];
+            markdown = ["prettierd"];
+            scss = ["prettierd"];
+            toml = ["prettierd"];
+            yaml = ["prettierd"];
+            vue = ["prettierd"];
 
             lua = ["stylua"];
             nix = ["alejandra"];
@@ -559,7 +559,6 @@ in {
           };
         };
       };
-
 
       lspkind = {
         enable = true;

@@ -1,17 +1,16 @@
-{ pkgs
-, config
-, lib
-, ...
-}:
-let
+{
+  pkgs,
+  config,
+  lib,
+  ...
+}: let
   copilotChatRepo = {
     owner = "copilotc-nvim";
     repo = "CopilotChat.nvim";
     rev = "82923efe22b604cf9c0cad0bb2a74aa9247755ab";
     hash = "sha256-bdGql7WBn4yk44rd+6fK3CwBZNOZOlatnKjJLoyHBDY=";
   };
-in
-{
+in {
   config = lib.mkIf (config.assistant == "copilot") {
     extraPlugins = with pkgs.vimUtils; [
       (buildVimPlugin {

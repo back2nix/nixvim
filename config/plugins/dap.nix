@@ -24,7 +24,6 @@
   config = let
     # ИСПРАВЛЕНО: Путь к helpers изменился в nixvim
     # helpers = inputs.nixvim.lib.helpers;
-
     gdb-args-config = {
       name = "Launch (GDB) with args";
       type = "gdb";
@@ -202,7 +201,6 @@
         };
       };
     };
-
 
     # ИСПРАВЛЕНО: `sections` теперь находится внутри `settings`
     plugins.lualine.settings.sections.lualine_x = lib.mkOrder 900 [
