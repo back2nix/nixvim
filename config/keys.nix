@@ -340,63 +340,6 @@
           silent = true;
         };
       }
-      # Completion
-      {
-        key = "<C-Space>";
-        action = ":lua vim.fn.complete(vim.fn.col('.'), vim.fn['compe#complete']())<CR>";
-        options = {
-          desc = "Open autocomplete menu";
-          silent = true;
-        };
-      }
-      {
-        key = "<CR>";
-        action = ":lua vim.fn['compe#confirm']('<CR>')<CR>";
-        options = {
-          desc = "Select autocomplete";
-          silent = true;
-        };
-      }
-      {
-        key = "<Tab>";
-        action = ":lua vim.fn  ? '<Plug>(vsnip-jump-next)' : '<Tab>'<CR>";
-        options = {
-          desc = "Next snippet position";
-          silent = true;
-        };
-      }
-      {
-        key = "<S-Tab>";
-        action = ":lua vim.fn['vsnip#jumpable'](-1) ? '<Plug>(vsnip-jump-prev)' : '<S-Tab>'<CR>";
-        options = {
-          desc = "Previous snippet position";
-          silent = true;
-        };
-      }
-      # {
-      #   key = "<Down>";
-      #   action = ":lua vim.fn['compe#scroll']({ 'delta': +4 })<CR>";
-      #   options = {
-      #     desc = "Next autocomplete (down)";
-      #     silent = true;
-      #   };
-      # }
-      {
-        key = "<C-n>";
-        action = ":lua vim.fn['compe#scroll']({ 'delta': +4 })<CR>";
-        options = {
-          desc = "Next autocomplete (down)";
-          silent = true;
-        };
-      }
-      {
-        key = "<C-j>";
-        action = ":lua vim.fn['compe#scroll']({ 'delta': +4 })<CR>";
-        options = {
-          desc = "Next autocomplete (down)";
-          silent = true;
-        };
-      }
       # Neo-Tree
       {
         key = "<leader>e";

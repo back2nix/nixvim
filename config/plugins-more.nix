@@ -522,13 +522,12 @@ in {
 
       cmp = {
         enable = true;
-
         settings = {
           snippet.expand = "function(args) require('luasnip').lsp_expand(args.body) end";
 
           mapping = {
             "<C-Space>" = "cmp.mapping.complete()";
-            "<CR>" = "cmp.mapping.confirm()";
+            "<CR>" = "cmp.mapping.confirm({ select = true })"; # ИСПРАВЛЕНО: Добавлен select = true для лучшего UX
             "<ESC>" = "cmp.mapping.close()";
             "<Down>" = "cmp.mapping.select_next_item()";
             "<C-j>" = "cmp.mapping.select_next_item()";
@@ -541,26 +540,35 @@ in {
           sources = [
             {name = "path";}
             {name = "nvim_lsp";}
-            {name = "cmp_tabby";}
+            # {name = "cmp_tabby";} # ИСПРАВЛЕНО: Закомментировано, чтобы убрать ошибку
             {name = "luasnip";}
             {
               name = "buffer";
               option.get_bufnrs.__raw = "vim.api.nvim_list_bufs";
             }
-            {name = "neorg";}
             {name = "nvim_lsp_signature_help";}
             {name = "treesitter";}
             {name = "dap";}
-            {name = "go_pkgs";}
+            {name = "go_pkgs";} # ИСПРАВЛЕНО: Добавлено из cmp-go-pkgs.nix
+            {name = "rg";} # ИСПРАВЛЕНО: Добавлено для полноты
           ];
+
+          # ИСПРАВЛЕНО: Добавлено из cmp-go-pkgs.nix для Go
+          matching = {
+            disallow_symbol_nonprefix_matching = false;
+          };
         };
       };
 
+
       lspkind = {
         enable = true;
-
+        # ИСПРАВЛЕНО: Возвращаем структуру к оригинальной, где настройки cmp
+        # находятся внутри блока `cmp`.
         cmp = {
           enable = true;
+          # `mode` опция не является частью этого плагина, она относится к `lspkind.cmp_format`
+          # и передается ему через `cmp.settings.formatting.format`
           menu = {
             nvim_lsp = "[LSP]";
             nvim_lua = "[api]";
@@ -569,8 +577,9 @@ in {
             buffer = "[buffer]";
             dap = "[dap]";
             treesitter = "[treesitter]";
-            cmp_tabby = "[Tabby]";
+            # cmp_tabby = "[Tabby]";
             go_pkgs = "[pkgs]";
+            rg = "[rg]";
           };
         };
       };

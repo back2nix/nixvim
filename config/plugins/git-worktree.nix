@@ -15,11 +15,11 @@ in {
 
     # ИСПРАВЛЕНО: `registrations` устарело. Используем `settings.spec` для определения группы.
     which-key.settings.spec = mkIf (cfg.enableTelescope && cfg.enable) [
-      {
-        mode = "n";
-        key = "<leader>gW";
-        group = "󰙅 Worktree";
-      }
+      # {
+      #   mode = "n";
+      #   key = "<leader>gW";
+      #   group = "󰙅 Worktree";
+      # }
     ];
   };
 
