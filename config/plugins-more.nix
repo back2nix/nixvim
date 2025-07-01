@@ -30,16 +30,16 @@ in {
       improved-search = {
         enable = true;
         keymaps = [
-          {
-            action = "stable_next";
-            key = "n";
-            mode = ["n" "x" "o"];
-          }
-          {
-            action = "stable_previous";
-            key = "N";
-            mode = ["n" "x" "o"];
-          }
+          # {
+          #   action = "stable_next";
+          #   key = "n";
+          #   mode = ["n" "x" "o"];
+          # }
+          # {
+          #   action = "stable_previous";
+          #   key = "N";
+          #   mode = ["n" "x" "o"];
+          # }
           {
             action = "current_word";
             key = "!";
@@ -328,10 +328,9 @@ in {
       trouble.enable = true;
       which-key = {
         enable = true;
-        # ИСПРАВЛЕНО: Все опции переехали в `settings` и переименованы в snake_case
         settings = {
           plugins.spelling.enabled = false;
-          triggers_no_wait = ["`" "'" "<leader>" "g`" "g'" ''"'' "<c-r>" "z=" "<Space>"];
+          triggers_no_wait = ["g" "`" "'" "<leader>" "g`" "g'" ''"'' "<c-r>" "z=" "<Space>"];
           disable = {
             bt = [];
             ft = [];
@@ -339,6 +338,7 @@ in {
           triggers_black_list = {
             i = ["j" "k"];
             v = ["j" "k"];
+            n = ["g"];
           };
         };
       };

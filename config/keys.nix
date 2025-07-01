@@ -381,38 +381,6 @@
         };
       }
       {
-        key = "gT";
-        action.__raw = ''function() require("telescope.builtin").lsp_type_definitions { reuse_win = true } end'';
-        options = {
-          desc = "Go to type definition";
-          silent = true;
-        };
-      }
-      {
-        key = "gd";
-        action.__raw = ''function() require("telescope.builtin").lsp_definitions { reuse_win = true } end'';
-        options = {
-          desc = "Go to definition";
-          silent = true;
-        };
-      }
-      {
-        key = "gi";
-        action.__raw = ''function() require("telescope.builtin").lsp_implementations { reuse_win = true } end'';
-        options = {
-          desc = "Go to implementation";
-          silent = true;
-        };
-      }
-      {
-        key = "gr";
-        action.__raw = ''function() require("telescope.builtin").lsp_references() end'';
-        options = {
-          desc = "Find references";
-          silent = true;
-        };
-      }
-      {
         key = "<leader>li";
         action = ":LspInfo<CR>";
         options = {
@@ -441,14 +409,6 @@
         action = ":lua vim.lsp.buf.signature_help()<CR>";
         options = {
           desc = "Signature help";
-          silent = true;
-        };
-      }
-      {
-        key = "gn";
-        action = "<CMD>lua vim.lsp.buf.rename()<CR>";
-        options = {
-          desc = "Rename symbol";
           silent = true;
         };
       }
@@ -810,30 +770,30 @@
           silent = true;
         };
       }
-      {
-        key = "gt";
-        action = ":lua require('treesj').toggle()<CR>";
-        options = {
-          desc = "TreeSJ: Toggle split/join";
-          silent = true;
-        };
-      }
-      {
-        key = "gs";
-        action = ":lua require('treesj').split()<CR>";
-        options = {
-          desc = "TreeSJ: Split";
-          silent = true;
-        };
-      }
-      {
-        key = "gj";
-        action = ":lua require('treesj').join()<CR>";
-        options = {
-          desc = "TreeSJ: Join";
-          silent = true;
-        };
-      }
+      # {
+      #   key = "gt";
+      #   action = ":lua require('treesj').toggle()<CR>";
+      #   options = {
+      #     desc = "TreeSJ: Toggle split/join";
+      #     silent = true;
+      #   };
+      # }
+      # {
+      #   key = "gs";
+      #   action = ":lua require('treesj').split()<CR>";
+      #   options = {
+      #     desc = "TreeSJ: Split";
+      #     silent = true;
+      #   };
+      # }
+      # {
+      #   key = "gj";
+      #   action = ":lua require('treesj').join()<CR>";
+      #   options = {
+      #     desc = "TreeSJ: Join";
+      #     silent = true;
+      #   };
+      # }
       {
         key = "<leader>si";
         action = "<cmd>Telescope hierarchy incoming_calls<cr>";
@@ -850,6 +810,76 @@
           silent = true;
         };
       }
+      { # Go to definition using Telescope
+        mode = "n";
+        key = "gd";
+        action.__raw = ''function() require("telescope.builtin").lsp_definitions({ reuse_win = true }) end'';
+        options = {
+          desc = "Go to definition";
+          silent = true;
+          nowait = true; # Важно: предотвращает which-key меню
+        };
+      }
+      { # Find references using Telescope
+        mode = "n";
+        key = "gr";
+        action.__raw = ''function() require("telescope.builtin").lsp_references() end'';
+        options = {
+          desc = "Find references";
+          silent = true;
+          nowait = true; # Важно: предотвращает which-key меню
+        };
+      }
+      { # Go to implementation using Telescope
+        mode = "n";
+        key = "gi";
+        action.__raw = ''function() require("telescope.builtin").lsp_implementations({ reuse_win = true }) end'';
+        options = {
+          desc = "Go to implementation";
+          silent = true;
+          nowait = true; # Важно: предотвращает which-key меню
+        };
+      }
+      { # Go to type definition using Telescope
+        mode = "n";
+        key = "gT";
+        action.__raw = ''function() require("telescope.builtin").lsp_type_definitions({ reuse_win = true }) end'';
+        options = {
+          desc = "Go to type definition";
+          silent = true;
+          nowait = true; # Важно: предотвращает which-key меню
+        };
+      }
+      { # Rename symbol using LSP
+        mode = "n";
+        key = "gn";
+        action.__raw = ''function() vim.lsp.buf.rename() end'';
+        options = {
+          desc = "Rename symbol";
+          silent = true;
+          nowait = true; # Важно: предотвращает which-key меню
+        };
+      }
     ];
+
+    extraConfigLua = ''
+      local opts = { silent = true, nowait = true }
+
+      -- LSP keymaps that should not trigger which-key
+      -- The following LSP keymaps were moved from here to the main 'keymaps' array
+      -- to ensure better integration with nixvim's keymap system and WhichKey.
+      -- This addresses the issue of WhichKey potentially showing incorrect or default
+      -- LSP actions when 'nowait' was expected to bypass the menu.
+      -- vim.keymap.set("n", "gd", function() require("telescope.builtin").lsp_definitions({ reuse_win = true }) end, vim.tbl_extend("force", { desc = "Go to definition" }, opts))
+      -- vim.keymap.set("n", "gr", function() require("telescope.builtin").lsp_references() end, vim.tbl_extend("force", { desc = "Find references" }, opts))
+      -- vim.keymap.set("n", "gi", function() require("telescope.builtin").lsp_implementations({ reuse_win = true }) end, vim.tbl_extend("force", { desc = "Go to implementation" }, opts))
+      -- vim.keymap.set("n", "gT", function() require("telescope.builtin").lsp_type_definitions({ reuse_win = true }) end, vim.tbl_extend("force", { desc = "Go to type definition" }, opts))
+      -- vim.keymap.set("n", "gn", function() vim.lsp.buf.rename() end, vim.tbl_extend("force", { desc = "Rename symbol" }, opts))
+
+      -- TreeSJ keymaps that should not trigger which-key
+      vim.keymap.set("n", "gt", function() require('treesj').toggle() end, vim.tbl_extend("force", { desc = "TreeSJ: Toggle" }, opts))
+      vim.keymap.set("n", "gs", function() require('treesj').split() end, vim.tbl_extend("force", { desc = "TreeSJ: Split" }, opts))
+      vim.keymap.set("n", "gj", function() require('treesj').join() end, vim.tbl_extend("force", { desc = "TreeSJ: Join" }, opts))
+    '';
   };
 }

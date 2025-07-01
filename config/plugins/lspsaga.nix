@@ -64,24 +64,24 @@
     };
   };
   programs.nixvim.keymaps = [
-    {
-      mode = "n";
-      key = "gd";
-      action = "<cmd>Lspsaga finder def<CR>";
-      options = {
-        desc = "Goto Definition";
-        silent = true;
-      };
-    }
-    {
-      mode = "n";
-      key = "gr";
-      action = "<cmd>Lspsaga finder ref<CR>";
-      options = {
-        desc = "Goto References";
-        silent = true;
-      };
-    }
+    # {
+    #   mode = "n";
+    #   key = "gd";
+    #   action = "<cmd>Lspsaga finder def<CR>";
+    #   options = {
+    #     desc = "Goto Definition";
+    #     silent = true;
+    #   };
+    # }
+    # {
+    #   mode = "n";
+    #   key = "gr";
+    #   action = "<cmd>Lspsaga finder ref<CR>";
+    #   options = {
+    #     desc = "Goto References";
+    #     silent = true;
+    #   };
+    # }
 
     # {
     #   mode = "n";
@@ -93,35 +93,35 @@
     #   };
     # }
 
-    {
-      mode = "n";
-      key = "gI";
-      action = "<cmd>Lspsaga finder imp<CR>";
-      options = {
-        desc = "Goto Implementation";
-        silent = true;
-      };
-    }
+    # {
+    #   mode = "n";
+    #   key = "gI";
+    #   action = "<cmd>Lspsaga finder imp<CR>";
+    #   options = {
+    #     desc = "Goto Implementation";
+    #     silent = true;
+    #   };
+    # }
 
-    {
-      mode = "n";
-      key = "gT";
-      action = "<cmd>Lspsaga peek_type_definition<CR>";
-      options = {
-        desc = "Type Definition";
-        silent = true;
-      };
-    }
+    # {
+    #   mode = "n";
+    #   key = "gT";
+    #   action = "<cmd>Lspsaga peek_type_definition<CR>";
+    #   options = {
+    #     desc = "Type Definition";
+    #     silent = true;
+    #   };
+    # }
 
-    {
-      mode = "n";
-      key = "K";
-      action = "<cmd>Lspsaga hover_doc<CR>";
-      options = {
-        desc = "Hover";
-        silent = true;
-      };
-    }
+    # {
+    #   mode = "n";
+    #   key = "K";
+    #   action = "<cmd>Lspsaga hover_doc<CR>";
+    #   options = {
+    #     desc = "Hover";
+    #     silent = true;
+    #   };
+    # }
 
     {
       mode = "n";
