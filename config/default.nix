@@ -89,6 +89,7 @@ in {
       stylua
       ruff
       alejandra
+      typescript
     ];
     globals = {
       mapleader = " ";
