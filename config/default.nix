@@ -57,10 +57,16 @@ in {
 
     clipboard = {
       register = "unnamedplus";
-      # TODO: Make conditional if X11/Wayland enabled
-      # providers.wl-copy.enable = true;
-      providers.xclip.enable = pkgs.stdenv.isLinux;
-      providers.xsel.enable = pkgs.stdenv.isDarwin;
+      providers = {
+        # Для Wayland. Neovim выберет его автоматически, если доступен.
+        wl-copy.enable = pkgs.stdenv.isLinux;
+
+        # Для X11. Будет использован как запасной вариант, если wl-copy недоступен.
+        xclip.enable = pkgs.stdenv.isLinux;
+
+        # Для macOS.
+        xsel.enable = pkgs.stdenv.isDarwin;
+      };
     };
 
     extraConfigLua = ''
