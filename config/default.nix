@@ -73,6 +73,21 @@ in {
       vim.api.nvim_set_keymap("x", "<C-t>", ":po<CR>", { noremap = true })
 
       require('nvim-highlight-colors').setup({})
+
+      if vim.env.WAYLAND_DISPLAY == nil or vim.env.WAYLAND_DISPLAY == "" then
+        vim.g.clipboard = {
+          name = 'xclip',
+          copy = {
+            ["+"] = "xclip -selection clipboard",
+            ["*"] = "xclip -selection primary",
+          },
+          paste = {
+            ["+"] = "xclip -selection clipboard -o",
+            ["*"] = "xclip -selection primary -o",
+          },
+          cache_enabled = 0,
+        }
+      end
     '';
 
     extraPlugins = with pkgs-master.vimPlugins; [
