@@ -58,13 +58,13 @@ in {
     clipboard = {
       register = "unnamedplus";
       providers = {
-        # Для Wayland. Neovim выберет его автоматически, если доступен.
-        wl-copy.enable = pkgs.stdenv.isLinux;
+        # ИЗМЕНЕНИЕ: Принудительно отключаем wl-copy, так как он зависает
+        wl-copy.enable = false;
 
-        # Для X11. Будет использован как запасной вариант, если wl-copy недоступен.
-        xclip.enable = pkgs.stdenv.isLinux;
+        # Убеждаемся, что xclip включен (он работает в вашем тесте)
+        xclip.enable = true;
 
-        # Для macOS.
+        # Для macOS (оставляем как было, хотя обычно там pbcopy)
         xsel.enable = pkgs.stdenv.isDarwin;
       };
     };
